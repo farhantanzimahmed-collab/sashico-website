@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { notifyContactForm } from "@/lib/telegram/notificationService";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) throw error;
+
+    // Telegram notification (best-effort)
+    notifyContactForm(name, email, subject || null, message).catch((e) =>
+      console.error("[telegram:contact]", e)
+    );
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to send message" }, { status: 500 });

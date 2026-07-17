@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { sendOrderConfirmationEmail } from "@/lib/email/orderConfirmation";
+import { notifyNewOrder, notifyNewCustomer, checkAndNotifyStockLevels } from "@/lib/telegram/notificationService";
+import { getTelegramConfig } from "@/lib/telegram/config";
 
 function getAdmin() {
   return createServiceClient(
@@ -79,10 +81,34 @@ export async function POST(req: NextRequest) {
         total_orders: (customer.total_orders || 0) + 1,
         total_spent: (customer.total_spent || 0) + total_amount,
       }).eq("id", customer.id).then(() => {});
+
+      // Notify if this is a brand-new customer (total_orders was 0 before this order)
+      if ((customer.total_orders || 0) === 0) {
+        notifyNewCustomer(customer_name, customer_email, customer_phone).catch(
+          (e) => console.error("[telegram:customer]", e)
+        );
+      }
     }
 
     // Send confirmation email (best-effort, non-blocking)
     sendOrderConfirmationEmail(order).catch((e) => console.error("[email]", e));
+
+    // Send Telegram notification (best-effort, non-blocking)
+    notifyNewOrder(order).catch((e) => console.error("[telegram:order]", e));
+
+    // Check stock levels for ordered items and send low/out-of-stock alerts
+    getTelegramConfig().then((config) => {
+      if (config?.isEnabled) {
+        checkAndNotifyStockLevels(
+          order.items.map((i: { product_id: string; product_name: string; size: string }) => ({
+            product_id: i.product_id,
+            product_name: i.product_name,
+            size: i.size,
+          })),
+          config.lowStockThreshold
+        ).catch((e) => console.error("[telegram:stock]", e));
+      }
+    });
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (err: any) {

@@ -211,6 +211,35 @@ export interface PageContent {
   updated_at: string;
 }
 
+export interface TelegramSettings {
+  id: number;
+  is_enabled: boolean;
+  bot_token: string | null;
+  chat_id: string | null;
+  notify_new_order: boolean;
+  notify_new_customer: boolean;
+  notify_contact_form: boolean;
+  notify_new_review: boolean;
+  notify_low_stock: boolean;
+  notify_out_of_stock: boolean;
+  notify_newsletter: boolean;
+  low_stock_threshold: number;
+  daily_summary_enabled: boolean;
+  weekly_summary_enabled: boolean;
+  monthly_summary_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderStatusHistory {
+  id: string;
+  order_id: string;
+  status: string;
+  notes: string | null;
+  changed_at: string;
+  changed_by: string;
+}
+
 export type ProductFilterOptions = {
   category?: string;
   minPrice?: number;

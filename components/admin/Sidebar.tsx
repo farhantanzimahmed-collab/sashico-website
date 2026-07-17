@@ -15,6 +15,7 @@ import {
   Tag,
   Mail,
   MessageSquare,
+  Send,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/admin/contacts", label: "Messages", icon: MessageSquare },
   { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/pages", label: "Pages", icon: FileText },
+  { href: "/admin/telegram", label: "Telegram Bot", icon: Send },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

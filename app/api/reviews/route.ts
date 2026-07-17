@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { notifyNewReview } from "@/lib/telegram/notificationService";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +27,24 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) throw error;
+
+    // Fetch product name for the Telegram notification (best-effort)
+    const serviceSupabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+    serviceSupabase
+      .from("products")
+      .select("name")
+      .eq("id", product_id)
+      .single()
+      .then(({ data }) => {
+        notifyNewReview(customer_name, rating, data?.name ?? "Unknown Product", comment || null).catch(
+          (e) => console.error("[telegram:review]", e)
+        );
+      });
+
     return NextResponse.json({ success: true, message: "Review submitted and pending approval" });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

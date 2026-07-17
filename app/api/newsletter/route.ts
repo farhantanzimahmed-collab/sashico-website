@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { notifyNewsletter } from "@/lib/telegram/notificationService";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,10 @@ export async function POST(req: NextRequest) {
       .upsert({ email, is_active: true }, { onConflict: "email" });
 
     if (error) throw error;
+
+    // Telegram notification (best-effort)
+    notifyNewsletter(email).catch((e) => console.error("[telegram:newsletter]", e));
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to subscribe" }, { status: 500 });
