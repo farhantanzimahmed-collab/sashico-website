@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Instagram, Facebook } from "lucide-react";
 import { SiteSettings } from "@/lib/types";
 
@@ -50,10 +51,14 @@ export default function Footer({ settings }: FooterProps) {
 
           {/* Brand col */}
           <div className="lg:col-span-2">
-            <Link href="/">
-              <span className="display-heading text-[3rem] tracking-[0.08em] text-white leading-none block mb-6">
-                SASHICO
-              </span>
+            <Link href="/" className="inline-block mb-6">
+              <Image
+                src="/sashico-logo.jpg"
+                alt="Sashico"
+                width={160}
+                height={54}
+                className="h-12 w-auto object-contain brightness-0 invert"
+              />
             </Link>
             <p className="text-sm text-white/50 leading-relaxed max-w-xs mb-8">
               Premium embroidery streetwear handcrafted in Bangladesh. Where artisan craft meets contemporary street culture.

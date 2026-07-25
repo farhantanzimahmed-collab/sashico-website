@@ -113,26 +113,19 @@ export default function Navbar({ settings }: NavbarProps) {
             {/* Center — logo */}
             <div className="flex justify-center">
               <Link href="/" className="flex items-center justify-center">
-                {settings?.youtube_url ? (
-                  <Image
-                    src={settings.youtube_url}
-                    alt="Sashico"
-                    width={120}
-                    height={40}
-                    className={cn("h-8 w-auto object-contain transition-all", transparent ? "brightness-0 invert" : "")}
-                    priority
-                  />
-                ) : (
-                  <span
-                    className={cn(
-                      "display-heading tracking-[0.12em] transition-colors duration-300",
-                      transparent ? "text-white" : "text-black",
-                    )}
-                    style={{ fontSize: "clamp(1.4rem, 2.5vw, 1.9rem)" }}
-                  >
-                    SASHICO
-                  </span>
-                )}
+                <Image
+                  src={settings?.youtube_url || "/sashico-logo.jpg"}
+                  alt="Sashico"
+                  width={160}
+                  height={54}
+                  className={cn(
+                    "w-auto object-contain transition-all duration-300",
+                    transparent
+                      ? "h-10 brightness-0 invert"
+                      : "h-10 mix-blend-multiply"
+                  )}
+                  priority
+                />
               </Link>
             </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -50,10 +51,14 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="px-6 py-8 border-b border-brand-gray-800">
         <Link href="/admin" className="block">
-          <p className="font-serif text-xl font-bold tracking-[0.3em] uppercase text-brand-white">
-            SASHICO
-          </p>
-          <p className="text-2xs uppercase tracking-widest text-brand-gray-500 mt-1 font-sans">
+          <Image
+            src="/sashico-logo.jpg"
+            alt="Sashico"
+            width={130}
+            height={44}
+            className="h-8 w-auto object-contain brightness-0 invert mb-2"
+          />
+          <p className="text-2xs uppercase tracking-widest text-brand-gray-500 font-sans">
             Admin Panel
           </p>
         </Link>
