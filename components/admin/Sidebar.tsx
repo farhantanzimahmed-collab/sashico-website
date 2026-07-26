@@ -52,11 +52,11 @@ export default function AdminSidebar() {
       <div className="px-6 py-8 border-b border-brand-gray-800">
         <Link href="/admin" className="block">
           <Image
-            src="/sashico-logo.jpg"
+            src="/sashico-logo.png"
             alt="Sashico"
-            width={130}
-            height={44}
-            className="h-8 w-auto object-contain brightness-0 invert mb-2"
+            width={400}
+            height={140}
+            className="h-8 w-auto object-contain invert mb-2"
           />
           <p className="text-2xs uppercase tracking-widest text-brand-gray-500 font-sans">
             Admin Panel

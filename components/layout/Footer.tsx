@@ -53,11 +53,11 @@ export default function Footer({ settings }: FooterProps) {
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block mb-6">
               <Image
-                src="/sashico-logo.jpg"
+                src="/sashico-logo.png"
                 alt="Sashico"
-                width={160}
-                height={54}
-                className="h-12 w-auto object-contain brightness-0 invert"
+                width={400}
+                height={140}
+                className="h-12 w-auto object-contain invert"
               />
             </Link>
             <p className="text-sm text-white/50 leading-relaxed max-w-xs mb-8">
