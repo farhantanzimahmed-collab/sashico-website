@@ -57,94 +57,96 @@ function categoryFromCode(code: string): string {
   return "other";
 }
 
-// ─── Simple flat sheet reader ─────────────────────────────────────────────────
+// ─── Main reader ──────────────────────────────────────────────────────────────
 //
-// Reads from the first tab (Sheet1 / Products / any name).
-// Row 1 = headers, data starts row 2.
+// Reads from the first visible sheet tab.
+// Row 1 = headers, data from row 2.
 //
-// Expected headers (A–Y):
-//   product_code | name | color | product_type | price | sale_price |
-//   description | is_featured | is_new_arrival | is_best_seller |
-//   gulshan_s | gulshan_m | gulshan_l | gulshan_xl | gulshan_free |
-//   banani_s  | banani_m  | banani_l  | banani_xl  | banani_free  |
-//   factory_s | factory_m | factory_l | factory_xl | factory_free
+// Columns (A–Q):
+//   product_code | product_name | product_color | product_description |
+//   product_category | size_available |
+//   s | m | l | xl | free_size | total_stock |
+//   price | sale_price |
+//   is_featured | is_new_arrival | is_best_seller
 
-async function readSimpleSheet(sheetId: string): Promise<SheetProduct[]> {
+export async function readMasterSheet(sheetId: string): Promise<SheetProduct[]> {
   const sheets = google.sheets({ version: "v4", auth: getGoogleAuth() });
 
-  // Try first sheet by default
-  const meta = await sheets.spreadsheets.get({ spreadsheetId: sheetId, fields: "sheets.properties" });
+  // Get first tab name
+  const meta = await sheets.spreadsheets.get({
+    spreadsheetId: sheetId,
+    fields: "sheets.properties",
+  });
   const firstTab = meta.data.sheets?.[0]?.properties?.title ?? "Sheet1";
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: `'${firstTab}'!A1:Y500`,
+    range: `'${firstTab}'!A1:Q500`,
     valueRenderOption: "UNFORMATTED_VALUE",
   });
 
   const rows = (res.data.values ?? []) as unknown[][];
   if (rows.length < 2) return [];
 
-  // Build header→index map from row 1
-  const headerRow = rows[0].map(h => str(h).toLowerCase().replace(/\s+/g, "_"));
-  const col = (name: string) => headerRow.indexOf(name);
+  // Map header names → column index
+  const headers = rows[0].map(h => str(h).toLowerCase().replace(/[\s-]+/g, "_"));
+  const col = (name: string) => headers.indexOf(name);
 
-  // Required columns
   const cCode  = col("product_code");
-  const cName  = col("name");
-  const cColor = col("color");
-  const cType  = col("product_type");
+  const cName  = col("product_name");
+  const cColor = col("product_color");
+  const cDesc  = col("product_description");
+  const cCat   = col("product_category");
+  const cS     = col("s");
+  const cM     = col("m");
+  const cL     = col("l");
+  const cXL    = col("xl");
+  const cFree  = col("free_size");
   const cPrice = col("price");
   const cSale  = col("sale_price");
-  const cDesc  = col("description");
   const cFeat  = col("is_featured");
   const cNew   = col("is_new_arrival");
   const cBest  = col("is_best_seller");
-
-  // Per-store per-size columns
-  const stores = [
-    { prefix: "gulshan", cols: ["gulshan_s","gulshan_m","gulshan_l","gulshan_xl","gulshan_free"] },
-    { prefix: "banani",  cols: ["banani_s", "banani_m", "banani_l", "banani_xl", "banani_free"] },
-    { prefix: "factory", cols: ["factory_s","factory_m","factory_l","factory_xl","factory_free"] },
-  ];
 
   const products: SheetProduct[] = [];
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
+
     const code = cCode >= 0 ? str(row[cCode]).toUpperCase() : "";
     if (!code.startsWith("SS-")) continue;
 
     const price = cPrice >= 0 ? num(row[cPrice]) : 0;
     if (price <= 0) continue;
 
-    // Aggregate stock per size across all stores
-    const SIZE_LABELS = ["S", "M", "L", "XL", "FREE"];
-    const sizeStock = [0, 0, 0, 0, 0];
-    for (const store of stores) {
-      store.cols.forEach((colName, idx) => {
-        const ci = col(colName);
-        if (ci >= 0) sizeStock[idx] += num(row[ci]);
-      });
-    }
+    // Per-size stock
+    const stockS    = cS    >= 0 ? num(row[cS])    : 0;
+    const stockM    = cM    >= 0 ? num(row[cM])    : 0;
+    const stockL    = cL    >= 0 ? num(row[cL])    : 0;
+    const stockXL   = cXL   >= 0 ? num(row[cXL])   : 0;
+    const stockFree = cFree >= 0 ? num(row[cFree]) : 0;
 
-    const sizes = SIZE_LABELS
-      .map((size, idx) => ({ size, stock: sizeStock[idx] }))
-      .filter(s => s.stock > 0);
+    const sizes = [
+      { size: "S",         stock: stockS    },
+      { size: "M",         stock: stockM    },
+      { size: "L",         stock: stockL    },
+      { size: "XL",        stock: stockXL   },
+      { size: "FREE SIZE", stock: stockFree },
+    ].filter(s => s.stock > 0);
 
-    const totalStock = sizeStock.reduce((a, b) => a + b, 0);
+    const totalStock = stockS + stockM + stockL + stockXL + stockFree;
 
     const name        = cName  >= 0 ? str(row[cName])  : code;
     const color       = cColor >= 0 ? str(row[cColor]) : "";
-    const productType = cType  >= 0 ? str(row[cType])  : "";
-    const displayName = name || (color ? `${color} ${productType}` : productType) || code;
     const description = cDesc  >= 0 ? str(row[cDesc])  : "";
     const salePrice   = cSale  >= 0 ? num(row[cSale])  : 0;
-    const category    = categoryFromCode(code);
+    const category    = (cCat >= 0 && str(row[cCat]))
+                          ? str(row[cCat]).toLowerCase()
+                          : categoryFromCode(code);
 
     products.push({
       product_code:    code,
-      name:            displayName,
+      name:            name || code,
       description,
       price,
       sale_price:      salePrice > 0 ? salePrice : null,
@@ -156,100 +158,15 @@ async function readSimpleSheet(sheetId: string): Promise<SheetProduct[]> {
       is_new_arrival:  cNew  >= 0 ? bool(row[cNew])  : false,
       is_best_seller:  cBest >= 0 ? bool(row[cBest]) : false,
       tags:            [],
-      meta_title:      `${displayName} | Sashico`,
-      meta_description: description || `${displayName} by Sashico`,
+      meta_title:      `${name || code} | Sashico`,
+      meta_description: description || `${name || code} by Sashico`,
       color,
-      product_type:    productType,
+      product_type:    "",
       design_name:     name,
     });
   }
 
   return products;
-}
-
-// ─── Fancy sheet reader (Apps Script built sheet) ────────────────────────────
-//
-// Reads from "🛍️ Products" tab, data starts row 6, col layout A–AK
-
-async function readFancySheet(sheetId: string): Promise<SheetProduct[]> {
-  const sheets = google.sheets({ version: "v4", auth: getGoogleAuth() });
-
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range: "'🛍️ Products'!A6:AK500",
-    valueRenderOption: "UNFORMATTED_VALUE",
-  });
-
-  const rows = (res.data.values ?? []) as unknown[][];
-  const products: SheetProduct[] = [];
-
-  for (const row of rows) {
-    const code = str(row[1]).toUpperCase();
-    if (!code.startsWith("SS-")) continue;
-    const price = num(row[6]);
-    if (price <= 0) continue;
-
-    const totalS    = num(row[30]);
-    const totalM    = num(row[31]);
-    const totalL    = num(row[32]);
-    const totalXL   = num(row[33]);
-    const totalFree = num(row[34]);
-    const totalAll  = num(row[35]);
-
-    const sizes = [
-      { size: "S",    stock: totalS    },
-      { size: "M",    stock: totalM    },
-      { size: "L",    stock: totalL    },
-      { size: "XL",   stock: totalXL   },
-      { size: "FREE", stock: totalFree },
-    ].filter(s => s.stock > 0);
-
-    const designName  = str(row[2]);
-    const color       = str(row[3]);
-    const productType = str(row[4]);
-    const name        = designName || (color ? `${color} ${productType}` : productType) || code;
-    const salePrice   = num(row[7]);
-    const description = str(row[10]);
-
-    products.push({
-      product_code:    code,
-      name,
-      description,
-      price,
-      sale_price:      salePrice > 0 ? salePrice : null,
-      category:        str(row[5]) || categoryFromCode(code),
-      sizes,
-      total_stock:     totalAll,
-      is_active:       totalAll > 0,
-      is_featured:     bool(row[11]),
-      is_new_arrival:  bool(row[12]),
-      is_best_seller:  bool(row[13]),
-      tags:            [],
-      meta_title:      `${name} | Sashico`,
-      meta_description: description || `${name} by Sashico`,
-      color,
-      product_type:    productType,
-      design_name:     designName,
-    });
-  }
-
-  return products;
-}
-
-// ─── Auto-detect and read ────────────────────────────────────────────────────
-
-export async function readMasterSheet(sheetId: string): Promise<SheetProduct[]> {
-  const sheets = google.sheets({ version: "v4", auth: getGoogleAuth() });
-  const meta = await sheets.spreadsheets.get({ spreadsheetId: sheetId, fields: "sheets.properties" });
-  const tabNames = meta.data.sheets?.map(s => s.properties?.title ?? "") ?? [];
-
-  // If Apps Script built the fancy sheet, use it
-  if (tabNames.includes("🛍️ Products")) {
-    return readFancySheet(sheetId);
-  }
-
-  // Otherwise fall back to simple flat format
-  return readSimpleSheet(sheetId);
 }
 
 // ─── Legacy aliases ───────────────────────────────────────────────────────────
