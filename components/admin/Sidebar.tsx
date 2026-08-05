@@ -17,6 +17,7 @@ import {
   Mail,
   MessageSquare,
   Send,
+  RefreshCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/telegram", label: "Telegram Bot", icon: Send },
+  { href: "/admin/google-sync", label: "Google Sync", icon: RefreshCw },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
