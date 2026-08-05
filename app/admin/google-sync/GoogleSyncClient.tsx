@@ -6,10 +6,11 @@ import { RefreshCw, Save, Play, CheckCircle, AlertCircle, Info, ExternalLink, Ch
 interface Config {
   sheet_id?: string;
   drive_folder_id?: string;
-  credentials?: string;
+  has_credentials?: string; // "true"/"false" — never get real credentials back
   last_synced_at?: string;
   last_sync_status?: string;
   last_sync_log?: string;
+  [key: string]: string | undefined;
 }
 
 export default function GoogleSyncClient({ initialConfig }: { initialConfig: Config }) {
@@ -144,16 +145,16 @@ export default function GoogleSyncClient({ initialConfig }: { initialConfig: Con
         <div>
           <label className="block text-xs font-sans text-brand-gray-500 uppercase tracking-wider mb-1.5">
             Service Account JSON{" "}
-            {initialConfig.last_sync_status !== "never"
+            {initialConfig.has_credentials === "true"
               ? <span className="text-green-600 normal-case">✓ saved</span>
               : <span className="text-red-500 normal-case">* required</span>}
           </label>
           <textarea
-            rows={initialConfig.last_sync_status !== "never" ? 2 : 5}
+            rows={initialConfig.has_credentials === "true" ? 2 : 5}
             value={credentials}
             onChange={e => setCredentials(e.target.value)}
             placeholder={
-              initialConfig.last_sync_status !== "never"
+              initialConfig.has_credentials === "true"
                 ? "Leave blank to keep saved credentials, or paste new JSON to replace"
                 : 'Paste the entire contents of your downloaded JSON key file here...'
             }

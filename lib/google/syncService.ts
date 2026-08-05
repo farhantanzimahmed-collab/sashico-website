@@ -146,9 +146,9 @@ export async function runGoogleSync(
       const totalStock = sizes.reduce((sum, s) => sum + s.stock, 0);
 
       // Build product record
-      const slug = slugify(`${product.name}-${code}`);
-      const record = {
-        product_code:     code,
+      // Slug = product_code (e.g. ss-t-001) — unique, stable, used for dedup
+      const slug = slugify(code);
+      const record: Record<string, unknown> = {
         name:             product.name || code,
         slug,
         description:      product.description,
@@ -168,32 +168,48 @@ export async function runGoogleSync(
         updated_at:       new Date().toISOString(),
       };
 
-      // Check if product exists
+      // Try to add product_code if column exists (graceful — won't break if missing)
+      (record as Record<string, unknown>).product_code = code;
+
+      // Check if product exists by slug (stable unique key = product code)
       const { data: existing } = await supabase
         .from("products")
-        .select("id, images")
-        .eq("product_code", code)
-        .single();
+        .select("id, images, slug")
+        .eq("slug", slug)
+        .maybeSingle();
 
       if (existing) {
         // Update but keep existing images if no new ones uploaded
         const finalImages = imageUrls.length > 0 ? imageUrls : (existing.images ?? []);
+        const updateRecord = { ...record, images: finalImages };
         const { error } = await supabase
           .from("products")
-          .update({ ...record, images: finalImages })
-          .eq("product_code", code);
+          .update(updateRecord)
+          .eq("slug", slug);
 
-        if (error) throw new Error(error.message);
+        // If product_code column doesn't exist, retry without it
+        if (error?.message?.includes("product_code")) {
+          delete (updateRecord as Record<string, unknown>).product_code;
+          const { error: e2 } = await supabase.from("products").update(updateRecord).eq("slug", slug);
+          if (e2) throw new Error(e2.message);
+        } else if (error) {
+          throw new Error(error.message);
+        }
+
         result.updated++;
         log(`  ✅ Updated`);
       } else {
         const { error } = await supabase.from("products").insert(record);
         if (error) {
-          // Slug conflict — make it unique
-          if (error.message.includes("slug")) {
-            const { error: e2 } = await supabase
-              .from("products")
-              .insert({ ...record, slug: `${slug}-${Date.now()}` });
+          // If product_code column missing, retry without it
+          if (error.message.includes("product_code")) {
+            const r2 = { ...record }; delete r2.product_code;
+            const { error: e2 } = await supabase.from("products").insert(r2);
+            if (e2) throw new Error(e2.message);
+          } else if (error.message.includes("slug")) {
+            // Slug conflict fallback
+            const r2 = { ...record, slug: `${slug}-${Date.now()}` };
+            const { error: e2 } = await supabase.from("products").insert(r2);
             if (e2) throw new Error(e2.message);
           } else {
             throw new Error(error.message);

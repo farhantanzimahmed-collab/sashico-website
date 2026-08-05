@@ -9,11 +9,22 @@ export default async function GoogleSyncPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
 
-  const { data: config } = await supabase
-    .from("google_sync_config")
-    .select("*")
-    .eq("id", 1)
-    .single();
+  // Load config from Storage via API — fetch from same origin
+  let config: Record<string, string> = {};
+  try {
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js");
+    const svc = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data } = await svc.storage.from("sashico-config").download("google-sync.json");
+    if (data) {
+      const text = await data.text();
+      const parsed = JSON.parse(text);
+      const { credentials: _, ...safe } = parsed; // strip credentials
+      config = { ...safe, has_credentials: parsed.credentials ? "true" : "false" };
+    }
+  } catch {}
 
   return (
     <div className="p-8 max-w-4xl">
@@ -23,7 +34,7 @@ export default async function GoogleSyncPage() {
           Import products from Google Sheets + images from Google Drive into Sashico
         </p>
       </div>
-      <GoogleSyncClient initialConfig={config ?? {}} />
+      <GoogleSyncClient initialConfig={config} />
     </div>
   );
 }
