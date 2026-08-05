@@ -6,6 +6,7 @@ import { RefreshCw, Save, Play, CheckCircle, AlertCircle, Info, ExternalLink, Ch
 interface Config {
   sheet_id?: string;
   drive_folder_id?: string;
+  credentials?: string;
   last_synced_at?: string;
   last_sync_status?: string;
   last_sync_log?: string;
@@ -14,6 +15,7 @@ interface Config {
 export default function GoogleSyncClient({ initialConfig }: { initialConfig: Config }) {
   const [sheetId, setSheetId] = useState(initialConfig.sheet_id ?? "");
   const [folderId, setFolderId] = useState(initialConfig.drive_folder_id ?? "");
+  const [credentials, setCredentials] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -34,7 +36,7 @@ export default function GoogleSyncClient({ initialConfig }: { initialConfig: Con
     const res = await fetch("/api/admin/google-sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "save_config", sheet_id: sheetId, drive_folder_id: folderId }),
+      body: JSON.stringify({ action: "save_config", sheet_id: sheetId, drive_folder_id: folderId, credentials: credentials || undefined }),
     });
     setSaving(false);
     if (!res.ok) setError("Save failed");
@@ -137,6 +139,30 @@ export default function GoogleSyncClient({ initialConfig }: { initialConfig: Con
         <h2 className="text-sm font-sans font-semibold text-brand-black uppercase tracking-widest">
           Configuration
         </h2>
+
+        {/* Credentials — only shown when not already saved */}
+        <div>
+          <label className="block text-xs font-sans text-brand-gray-500 uppercase tracking-wider mb-1.5">
+            Service Account JSON{" "}
+            {initialConfig.last_sync_status !== "never"
+              ? <span className="text-green-600 normal-case">✓ saved</span>
+              : <span className="text-red-500 normal-case">* required</span>}
+          </label>
+          <textarea
+            rows={initialConfig.last_sync_status !== "never" ? 2 : 5}
+            value={credentials}
+            onChange={e => setCredentials(e.target.value)}
+            placeholder={
+              initialConfig.last_sync_status !== "never"
+                ? "Leave blank to keep saved credentials, or paste new JSON to replace"
+                : 'Paste the entire contents of your downloaded JSON key file here...'
+            }
+            className="w-full px-3 py-2.5 border border-black/12 rounded text-xs font-mono focus:outline-none focus:border-black transition-colors resize-none"
+          />
+          <p className="text-xs text-brand-gray-400 mt-1">
+            Stored securely in your database — no Vercel env var needed
+          </p>
+        </div>
 
         <div>
           <label className="block text-xs font-sans text-brand-gray-500 uppercase tracking-wider mb-1.5">

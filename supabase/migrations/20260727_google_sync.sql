@@ -5,11 +5,12 @@ CREATE INDEX IF NOT EXISTS products_product_code_idx ON products (product_code);
 -- Google Sync config table
 CREATE TABLE IF NOT EXISTS google_sync_config (
   id INTEGER PRIMARY KEY DEFAULT 1,
+  credentials TEXT,           -- service account JSON (stored encrypted in DB)
   sheet_id TEXT,
   drive_folder_id TEXT,
   last_synced_at TIMESTAMPTZ,
   last_sync_log TEXT,
-  last_sync_status TEXT DEFAULT 'never',  -- never | running | success | error
+  last_sync_status TEXT DEFAULT 'never',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

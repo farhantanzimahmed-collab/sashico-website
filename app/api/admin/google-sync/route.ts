@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { runGoogleSync } from "@/lib/google/syncService";
+import { setCredentials } from "@/lib/google/googleAuth";
 
 // GET — load current config
 export async function GET() {
@@ -27,10 +28,15 @@ export async function POST(req: NextRequest) {
 
   // Save config only
   if (body.action === "save_config") {
-    const { sheet_id, drive_folder_id } = body;
+    const { sheet_id, drive_folder_id, credentials } = body;
+    const updates: Record<string, string> = {
+      sheet_id, drive_folder_id, updated_at: new Date().toISOString(),
+    };
+    if (credentials) updates.credentials = credentials;
+
     const { error } = await supabase
       .from("google_sync_config")
-      .update({ sheet_id, drive_folder_id, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq("id", 1);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,9 +51,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Sheet ID and Drive Folder ID are required" }, { status: 400 });
     }
 
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-      return NextResponse.json({ error: "GOOGLE_SERVICE_ACCOUNT_JSON env var not configured" }, { status: 500 });
+    // Load credentials: DB first, then env var
+    const { data: cfg } = await supabase
+      .from("google_sync_config").select("credentials").eq("id", 1).single();
+
+    const creds = cfg?.credentials || process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    if (!creds) {
+      return NextResponse.json({ error: "Google credentials not configured. Paste your service account JSON in the Credentials field and save." }, { status: 500 });
     }
+    setCredentials(creds);
 
     // Mark as running in DB
     await supabase
