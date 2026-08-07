@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Heart, Plus } from "lucide-react";
@@ -17,6 +17,39 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+/* ─── Slot Machine Price ──────────────────────────────────── */
+function SlotPrice({ amount }: { amount: number }) {
+  const [digits, setDigits] = useState<string>("");
+  const [spinning, setSpinning] = useState(false);
+  const [spun, setSpun] = useState(false);
+  const ivRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function spin() {
+    if (spun || spinning) return;
+    setSpinning(true);
+    const target = amount.toString();
+    let frame = 0;
+    ivRef.current = setInterval(() => {
+      const next = target
+        .split("")
+        .map((c, i) => (frame > i * 2 + 6 ? c : String(Math.floor(Math.random() * 10))))
+        .join("");
+      setDigits(next);
+      frame++;
+      if (frame > target.length * 2 + 12) {
+        if (ivRef.current != null) clearInterval(ivRef.current);
+        setDigits(target);
+        setSpinning(false);
+        setSpun(true);
+      }
+    }, 48);
+  }
+
+  useEffect(() => () => { if (ivRef.current != null) clearInterval(ivRef.current); }, []);
+
+  return { spin, displayDigits: spinning || spun ? digits : null };
+}
+
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -24,31 +57,38 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const { toggleItem, isWishlisted } = useWishlistStore();
   const { trackAddToCart } = useTracking();
 
-  const wishlisted = isWishlisted(product.id);
-  const mainImage = product.images[0] || null;
-  const hoverImage = product.images[1] || null;
-  const price = product.discount_price ?? product.price;
+  /* Slot machine */
+  const price       = product.discount_price ?? product.price;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const slotMain    = SlotPrice({ amount: price });
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const slotOrig    = SlotPrice({ amount: product.price });
+
+  const wishlisted  = isWishlisted(product.id);
+  const mainImage   = product.images[0] || null;
+  const hoverImage  = product.images[1] || null;
   const hasDiscount = !!product.discount_price && product.discount_price < product.price;
-  const discount = hasDiscount ? getDiscountPercentage(product.price, product.discount_price!) : 0;
-  const inStock = product.stock_quantity > 0;
+  const discount    = hasDiscount ? getDiscountPercentage(product.price, product.discount_price!) : 0;
+  const inStock     = product.stock_quantity > 0;
   const defaultSize = product.sizes.find((s) => s.stock > 0)?.size || "";
+  const availSizes  = product.sizes.filter((s) => s.stock > 0);
 
   function handleQuickAdd(e: React.MouseEvent) {
     e.preventDefault();
     if (!inStock || !defaultSize) return;
     setAddingToCart(true);
     addItem({
-      product_id: product.id,
-      product_name: product.name,
-      product_slug: product.slug,
+      product_id:    product.id,
+      product_name:  product.name,
+      product_slug:  product.slug,
       product_image: mainImage || "",
-      size: defaultSize,
-      quantity: 1,
-      unit_price: price,
-      total_price: price,
+      size:          defaultSize,
+      quantity:      1,
+      unit_price:    price,
+      total_price:   price,
     });
     trackAddToCart(product.id, product.name, price, 1);
-    toast.success(`Added to cart`);
+    toast.success("Added to cart");
     openCart();
     setTimeout(() => setAddingToCart(false), 600);
   }
@@ -56,6 +96,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   function handleMouseEnter() {
     if (typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches) {
       setHovered(true);
+      slotMain.spin();
+      slotOrig.spin();
     }
   }
 
@@ -65,9 +107,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Image */}
+      {/* ── Image + overlays ─────────────────────── */}
       <div className="relative overflow-hidden bg-brand-gray-100 aspect-[3/4] rounded-lg">
         <Link href={`/shop/${product.slug}`} className="block absolute inset-0">
+
+          {/* Main image */}
           {mainImage ? (
             <>
               <Image
@@ -93,22 +137,94 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                   )}
                 />
               )}
-              {!hoverImage && (
-                <div className={cn(
-                  "absolute inset-0 bg-black/8 transition-opacity duration-300",
-                  hovered ? "opacity-100" : "opacity-0"
-                )} />
-              )}
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-brand-gray-100">
               <span className="display-heading text-[2rem] text-brand-gray-200 tracking-widest">SCO</span>
             </div>
           )}
+
+          {/* ── Split Screen Panel (right half slides in) ── */}
+          <div
+            aria-hidden="true"
+            className="absolute top-0 right-0 bottom-0 flex flex-col justify-end"
+            style={{
+              width: "50%",
+              background: "linear-gradient(160deg, #161410 0%, #0f0e0c 100%)",
+              clipPath: hovered ? "inset(0 0 0 0)" : "inset(0 0 0 100%)",
+              transition: "clip-path 0.48s cubic-bezier(0.77, 0, 0.18, 1)",
+              padding: "14px 12px",
+              zIndex: 2,
+            }}
+          >
+            {/* Left edge divider */}
+            <div
+              style={{
+                position: "absolute",
+                left: 0, top: "8%", bottom: "8%",
+                width: "1px",
+                background: "rgba(255,255,255,0.08)",
+              }}
+            />
+            <p
+              style={{
+                fontSize: "7px",
+                letterSpacing: ".18em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.3)",
+                marginBottom: "6px",
+                fontFamily: "inherit",
+              }}
+            >
+              {product.category || "Sashico"}
+            </p>
+            <p
+              style={{
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.85)",
+                lineHeight: 1.4,
+                marginBottom: "10px",
+                fontFamily: "Georgia, serif",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {product.name}
+            </p>
+            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "10px" }}>
+              {availSizes.slice(0, 5).map((s) => (
+                <span
+                  key={s.size}
+                  style={{
+                    fontSize: "7px",
+                    letterSpacing: ".12em",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    color: "rgba(255,255,255,0.45)",
+                    padding: "2px 5px",
+                  }}
+                >
+                  {s.size}
+                </span>
+              ))}
+            </div>
+            <p
+              style={{
+                fontSize: "8px",
+                letterSpacing: ".14em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.25)",
+              }}
+            >
+              View Details →
+            </p>
+          </div>
+
         </Link>
 
         {/* Badges — top left */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none z-10">
           {product.is_new_arrival && (
             <span className="label-xs bg-black text-white px-2.5 py-1 rounded">New</span>
           )}
@@ -124,7 +240,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <button
           onClick={() => toggleItem(product.id)}
           className={cn(
-            "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg transition-all duration-200",
+            "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg transition-all duration-200 z-10",
             "opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0",
             wishlisted ? "text-black" : "text-brand-gray-300 hover:text-black"
           )}
@@ -139,7 +255,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             onClick={handleQuickAdd}
             disabled={addingToCart}
             className={cn(
-              "absolute bottom-0 inset-x-0 bg-black text-white py-3.5 label-xs flex items-center justify-center gap-2 transition-all duration-300",
+              "absolute bottom-0 inset-x-0 bg-black text-white py-3.5 label-xs flex items-center justify-center gap-2 transition-all duration-300 z-10",
               hovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"
             )}
           >
@@ -149,7 +265,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         )}
       </div>
 
-      {/* Info */}
+      {/* ── Info ──────────────────────────────────── */}
       <div className="pt-3.5">
         <Link href={`/shop/${product.slug}`}>
           <h3 className="text-sm font-normal text-black hover:text-brand-gray-500 transition-colors leading-snug">
@@ -157,12 +273,23 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </h3>
         </Link>
         <div className="flex items-center gap-2.5 mt-1.5">
-          <span className="text-sm font-medium text-black">
-            {formatPrice(price)}
+          {/* Slot Machine Price */}
+          <span
+            className="text-sm font-medium text-black"
+            style={{ fontVariantNumeric: "tabular-nums", minWidth: "3ch", display: "inline-block" }}
+          >
+            {slotMain.displayDigits != null
+              ? `৳${slotMain.displayDigits}`
+              : formatPrice(price)}
           </span>
           {hasDiscount && (
-            <span className="text-xs text-brand-gray-400 line-through">
-              {formatPrice(product.price)}
+            <span
+              className="text-xs text-brand-gray-400 line-through"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {slotOrig.displayDigits != null
+                ? `৳${slotOrig.displayDigits}`
+                : formatPrice(product.price)}
             </span>
           )}
         </div>

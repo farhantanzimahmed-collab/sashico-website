@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import ProductCard from "@/components/shop/ProductCard";
+import GrainReveal from "@/components/ui/GrainReveal";
 import { Product } from "@/lib/types";
 
 interface ProductSectionProps {
@@ -49,12 +50,14 @@ export default function ProductSection({
           </Link>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-          {products.slice(0, 12).map((product, idx) => (
-            <ProductCard key={product.id} product={product} priority={idx < 4} />
-          ))}
-        </div>
+        {/* Grid — Grain Dissolve on scroll into view */}
+        <GrainReveal>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+            {products.slice(0, 12).map((product, idx) => (
+              <ProductCard key={product.id} product={product} priority={idx < 4} />
+            ))}
+          </div>
+        </GrainReveal>
 
         {/* Mobile view all */}
         <div className="mt-10 text-center sm:hidden">
