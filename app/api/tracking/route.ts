@@ -9,32 +9,45 @@ function getAdmin() {
   );
 }
 
-export async function GET(req: NextRequest) {
-  const orderNumber = req.nextUrl.searchParams.get("order");
-  const email = req.nextUrl.searchParams.get("email");
-  const phone = req.nextUrl.searchParams.get("phone");
+const ORDER_COLS = "order_number,customer_name,customer_email,customer_phone,order_status,payment_status,payment_method,total_amount,items,shipping_address,tracking_number,created_at,updated_at";
 
-  if (!orderNumber) {
-    return NextResponse.json({ error: "Order number required" }, { status: 400 });
+export async function GET(req: NextRequest) {
+  const orderNumber = req.nextUrl.searchParams.get("order")?.trim();
+  const phone       = req.nextUrl.searchParams.get("phone")?.trim();
+
+  if (!orderNumber && !phone) {
+    return NextResponse.json({ error: "Enter your order number or phone number." }, { status: 400 });
   }
 
   const supabase = getAdmin();
-  let query = supabase
-    .from("orders")
-    .select("order_number,customer_name,customer_email,customer_phone,order_status,payment_status,payment_method,total_amount,items,shipping_address,tracking_number,created_at,updated_at")
-    .eq("order_number", orderNumber);
 
-  if (email) {
-    query = query.ilike("customer_email", email);
-  } else if (phone) {
-    query = query.ilike("customer_phone", phone);
+  // Search by order number (exact match)
+  if (orderNumber) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(ORDER_COLS)
+      .ilike("order_number", orderNumber)
+      .maybeSingle();
+
+    if (error || !data) {
+      return NextResponse.json({ error: "Order not found. Please check your order number." }, { status: 404 });
+    }
+    return NextResponse.json({ order: data });
   }
 
-  const { data, error } = await query.single();
+  // Search by phone number — return most recent order
+  if (phone) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(ORDER_COLS)
+      .ilike("customer_phone", phone)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  if (error || !data) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    if (error || !data) {
+      return NextResponse.json({ error: "No orders found for this phone number." }, { status: 404 });
+    }
+    return NextResponse.json({ order: data });
   }
-
-  return NextResponse.json({ order: data });
 }

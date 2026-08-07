@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Package, Truck, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Search, Package, Truck, CheckCircle, Clock, XCircle, Phone, Hash } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -21,25 +21,25 @@ function getStepIndex(status: string) {
 }
 
 export default function OrderTrackingPage() {
+  const [searchBy, setSearchBy] = useState<"order" | "phone">("order");
   const [orderNumber, setOrderNumber] = useState("");
-  const [contactType, setContactType] = useState<"phone" | "email">("phone");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<any>(null);
   const [error, setError] = useState("");
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (!orderNumber.trim()) return;
+    const value = searchBy === "order" ? orderNumber.trim() : phone.trim();
+    if (!value) return;
     setLoading(true);
     setError("");
     setOrder(null);
 
     try {
-      const params = new URLSearchParams({ order: orderNumber.trim() });
-      if (contactType === "phone" && phone.trim()) params.set("phone", phone.trim());
-      if (contactType === "email" && email.trim()) params.set("email", email.trim());
+      const params = new URLSearchParams();
+      if (searchBy === "order") params.set("order", value);
+      else params.set("phone", value);
 
       const res = await fetch(`/api/tracking?${params}`);
       const data = await res.json();
@@ -70,59 +70,50 @@ export default function OrderTrackingPage() {
         </div>
 
         <form onSubmit={handleSearch} className="space-y-4 mb-10">
-          <Input
-            label="Order Number"
-            value={orderNumber}
-            onChange={(e) => setOrderNumber(e.target.value)}
-            placeholder="e.g. SCO-12345"
-          />
-
-          {/* Contact type toggle */}
-          <div>
-            <p className="text-xs font-sans text-brand-gray-500 mb-2">Verify with (optional)</p>
-            <div className="flex gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => setContactType("phone")}
-                className={`px-4 py-2 text-xs font-sans border transition-colors ${
-                  contactType === "phone"
-                    ? "border-brand-black bg-brand-black text-white"
-                    : "border-brand-gray-200 text-brand-gray-500 hover:border-brand-black"
-                }`}
-              >
-                Phone Number
-              </button>
-              <button
-                type="button"
-                onClick={() => setContactType("email")}
-                className={`px-4 py-2 text-xs font-sans border transition-colors ${
-                  contactType === "email"
-                    ? "border-brand-black bg-brand-black text-white"
-                    : "border-brand-gray-200 text-brand-gray-500 hover:border-brand-black"
-                }`}
-              >
-                Email Address
-              </button>
-            </div>
-
-            {contactType === "phone" ? (
-              <Input
-                label=""
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. 01XXXXXXXXX"
-              />
-            ) : (
-              <Input
-                label=""
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-              />
-            )}
+          {/* Search mode toggle */}
+          <div className="flex border border-brand-gray-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => { setSearchBy("order"); setError(""); setOrder(null); }}
+              className={`flex-1 py-3 text-xs font-sans font-medium transition-colors ${
+                searchBy === "order"
+                  ? "bg-brand-black text-white"
+                  : "bg-white text-brand-gray-500 hover:text-brand-black"
+              }`}
+            >
+              Order Number
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSearchBy("phone"); setError(""); setOrder(null); }}
+              className={`flex-1 py-3 text-xs font-sans font-medium transition-colors border-l border-brand-gray-200 ${
+                searchBy === "phone"
+                  ? "bg-brand-black text-white"
+                  : "bg-white text-brand-gray-500 hover:text-brand-black"
+              }`}
+            >
+              Phone Number
+            </button>
           </div>
+
+          {searchBy === "order" ? (
+            <Input
+              label="Order Number"
+              value={orderNumber}
+              onChange={(e) => setOrderNumber(e.target.value)}
+              placeholder="e.g. SCO-001017"
+              autoFocus
+            />
+          ) : (
+            <Input
+              label="Phone Number"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. 01XXXXXXXXX"
+              autoFocus
+            />
+          )}
 
           <Button type="submit" loading={loading} size="lg" fullWidth>
             <Search className="h-4 w-4" />
