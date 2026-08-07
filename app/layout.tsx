@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   creator: "Sashico",
   publisher: "Sashico",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://sashico.com"
+    process.env.NEXT_PUBLIC_APP_URL || "https://sashico.vercel.app"
   ),
   openGraph: {
     type: "website",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
       "Premium embroidery streetwear crafted in Bangladesh. Authentic hand-stitched designs for the modern streetwear enthusiast.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "Sashico - Premium Embroidery Streetwear",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sashico | Premium Embroidery Streetwear",
     description: "Premium embroidery streetwear crafted in Bangladesh.",
-    images: ["/og-image.jpg"],
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
