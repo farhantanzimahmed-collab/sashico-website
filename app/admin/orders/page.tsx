@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Order } from "@/lib/types";
 import { formatPrice, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/utils";
 import ExportButton from "@/components/admin/ExportButton";
+import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
 
 export const revalidate = 0;
 
@@ -38,7 +39,7 @@ export default async function AdminOrdersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-brand-gray-100 bg-brand-gray-50">
-                {["Order #", "Customer", "Items", "Total", "Payment", "Status", "Date", ""].map((h) => (
+                {["Order #", "Customer", "Items", "Total", "Payment", "Status", "Date", "", ""].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-left text-2xs uppercase tracking-wider text-brand-gray-400 font-sans font-medium whitespace-nowrap"
@@ -99,6 +100,12 @@ export default async function AdminOrdersPage() {
                         >
                           View
                         </Link>
+                      </td>
+                      <td className="px-5 py-4">
+                        <DeleteOrderButton
+                          orderId={order.id}
+                          orderNumber={order.order_number}
+                        />
                       </td>
                     </tr>
                   );
