@@ -28,21 +28,21 @@ async function getData() {
         .eq("is_new_arrival", true)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
-        .limit(8),
+        .limit(12),
       supabase
         .from("products")
         .select(PRODUCT_COLS)
         .eq("is_featured", true)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
-        .limit(8),
+        .limit(12),
       supabase
         .from("products")
         .select(PRODUCT_COLS)
         .eq("is_best_seller", true)
         .eq("is_active", true)
         .order("created_at", { ascending: false })
-        .limit(8),
+        .limit(12),
       supabase
         .from("reviews")
         .select("id,product_id,customer_name,rating,comment,is_approved,created_at")

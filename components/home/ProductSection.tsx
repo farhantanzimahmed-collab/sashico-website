@@ -51,7 +51,7 @@ export default function ProductSection({
 
         {/* Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-          {products.slice(0, 8).map((product, idx) => (
+          {products.slice(0, 12).map((product, idx) => (
             <ProductCard key={product.id} product={product} priority={idx < 4} />
           ))}
         </div>
