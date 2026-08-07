@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
-import { ShieldCheck, Truck, Banknote } from "lucide-react";
+import { ShieldCheck, Truck, Banknote, MapPin } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice, getImageUrl } from "@/lib/utils";
 import { useTracking } from "@/hooks/useTracking";
@@ -14,12 +14,28 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import toast from "react-hot-toast";
 
+const BANGLADESH_DIVISIONS = [
+  "Dhaka",
+  "Chattogram",
+  "Rajshahi",
+  "Khulna",
+  "Barishal",
+  "Sylhet",
+  "Rangpur",
+  "Mymensingh",
+];
+
+const SHIPPING_DHAKA    = 80;
+const SHIPPING_OUTSIDE  = 140;
+const SHIPPING_THRESHOLD = 2000;
+
 const schema = z.object({
   full_name:   z.string().min(2, "Full name is required"),
   email:       z.string().email("Valid email required"),
   phone:       z.string().min(11, "Valid phone number required"),
   street:      z.string().min(5, "Street address is required"),
-  city:        z.string().min(2, "City is required"),
+  city:        z.string().min(2, "City / Area is required"),
+  division:    z.string().min(1, "Please select your division"),
   district:    z.string().min(2, "District is required"),
   postal_code: z.string().optional(),
   notes:       z.string().optional(),
@@ -36,14 +52,16 @@ export default function CheckoutPage() {
   const [hydrated, setHydrated] = useState(false);
 
   const total = getTotalPrice();
-  const SHIPPING_THRESHOLD = 2000;
-  const SHIPPING_COST = 80;
-  const finalShipping = total >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const grandTotal = total + finalShipping;
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { division: "" },
   });
+
+  const selectedDivision = watch("division");
+  const baseShipping = selectedDivision === "Dhaka" ? SHIPPING_DHAKA : selectedDivision ? SHIPPING_OUTSIDE : SHIPPING_DHAKA;
+  const finalShipping = total >= SHIPPING_THRESHOLD ? 0 : baseShipping;
+  const grandTotal = total + finalShipping;
 
   // Wait for Zustand to hydrate cart from localStorage before checking empty
   useEffect(() => {
@@ -78,7 +96,7 @@ export default function CheckoutPage() {
           customer_name:    data.full_name,
           customer_email:   data.email,
           customer_phone:   data.phone,
-          shipping_address: { street: data.street, city: data.city, district: data.district, postal_code: data.postal_code, country: "Bangladesh" },
+          shipping_address: { street: data.street, city: data.city, division: data.division, district: data.district, postal_code: data.postal_code, country: "Bangladesh" },
           items: items.map((i) => ({
             product_id:    i.product_id,
             product_name:  i.product_name,
@@ -140,11 +158,36 @@ export default function CheckoutPage() {
             {/* Shipping */}
             <div className="space-y-4">
               <h2 className="label-xs text-brand-black border-b border-brand-gray-100 pb-3">Delivery Address</h2>
-              <Input label="Street Address" {...register("street")} error={errors.street?.message} placeholder="House/Flat, Road, Area" />
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="City" {...register("city")} error={errors.city?.message} placeholder="Dhaka" />
-                <Input label="District" {...register("district")} error={errors.district?.message} placeholder="Dhaka" />
+              <Input label="Street Address" {...register("street")} error={errors.street?.message} placeholder="House / Flat, Road, Area" />
+              <Input label="City / Area" {...register("city")} error={errors.city?.message} placeholder="e.g. Gulshan, Mirpur, Agrabad" />
+
+              {/* Division dropdown */}
+              <div>
+                <label className="mb-1.5 block label-xs text-brand-gray-600">Division</label>
+                <select
+                  {...register("division")}
+                  className="w-full border border-brand-gray-200 px-4 py-3 text-sm font-sans text-brand-black focus:border-brand-black focus:outline-none transition-colors bg-white appearance-none"
+                  style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center" }}
+                >
+                  <option value="">— Select Division —</option>
+                  {BANGLADESH_DIVISIONS.map((div) => (
+                    <option key={div} value={div}>{div}</option>
+                  ))}
+                </select>
+                {errors.division && <p className="mt-1 text-xs text-red-500 font-sans">{errors.division.message}</p>}
+
+                {/* Delivery charge badge */}
+                {selectedDivision && (
+                  <div className={`mt-2 flex items-center gap-2 px-3 py-2 text-xs font-sans rounded ${selectedDivision === "Dhaka" ? "bg-green-50 text-green-700 border border-green-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
+                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                    {selectedDivision === "Dhaka"
+                      ? "Dhaka delivery · ৳80"
+                      : `Outside Dhaka (${selectedDivision}) · ৳140`}
+                  </div>
+                )}
               </div>
+
+              <Input label="District" {...register("district")} error={errors.district?.message} placeholder="e.g. Dhaka, Chittagong, Sylhet" />
               <Input label="Postal Code (Optional)" {...register("postal_code")} placeholder="1200" />
             </div>
 
@@ -215,10 +258,10 @@ export default function CheckoutPage() {
                   <span>Subtotal</span><span>{formatPrice(total)}</span>
                 </div>
                 <div className="flex justify-between text-brand-gray-600">
-                  <span>Shipping</span>
+                  <span>Delivery{selectedDivision ? ` (${selectedDivision})` : ""}</span>
                   <span className={finalShipping === 0 ? "text-green-600 font-medium" : ""}>{finalShipping === 0 ? "Free" : formatPrice(finalShipping)}</span>
                 </div>
-                {finalShipping > 0 && (
+                {finalShipping > 0 && total < SHIPPING_THRESHOLD && (
                   <p className="text-xs text-brand-gray-400">Add {formatPrice(SHIPPING_THRESHOLD - total)} more for free shipping</p>
                 )}
                 <div className="flex justify-between font-semibold text-brand-black border-t border-brand-gray-100 pt-3 text-base">
