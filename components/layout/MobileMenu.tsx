@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  links: { href: string; label: string }[];
+  links: { href: string; label: string; sale?: boolean }[];
 }
 
 export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
@@ -45,44 +45,27 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 overflow-y-auto px-8 py-10">
-          <ul className="space-y-1">
+        <nav className="flex-1 overflow-y-auto px-6 py-6">
+          <ul className="space-y-0">
             {links.map((link, i) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={onClose}
-                  className="flex items-center justify-between py-4 border-b border-black/8 group"
+                  className="flex items-center justify-between py-3.5 border-b border-black/8 group"
                 >
-                  <span className="display-heading text-[2rem] tracking-[0.04em] text-black group-hover:text-brand-gray-500 transition-colors">
+                  <span className={cn(
+                    "display-heading text-[1.15rem] tracking-[0.06em] transition-colors whitespace-nowrap",
+                    link.sale
+                      ? "text-red-500 group-hover:text-red-600"
+                      : "text-black group-hover:text-brand-gray-500"
+                  )}>
                     {link.label.toUpperCase()}
-                  </span>
-                  <span className="label-xs text-brand-gray-300 group-hover:text-brand-gray-500 transition-colors">
-                    0{i + 1}
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
-
-          <div className="mt-10 space-y-3">
-            {[
-              { label: "Track Order", href: "/order-tracking" },
-              { label: "Size Guide", href: "/size-guide" },
-              { label: "Shipping", href: "/shipping" },
-              { label: "Returns", href: "/returns" },
-              { label: "FAQ", href: "/faq" },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className="block label-xs text-brand-gray-400 hover:text-black transition-colors py-1"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
         </nav>
 
         {/* Footer */}
