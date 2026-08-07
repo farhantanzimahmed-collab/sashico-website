@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-const CATEGORIES = ["T-Shirts", "Hoodies", "Jackets", "Accessories"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+const CATEGORIES = ["T-Shirts", "Cuban Shirts", "Winter", "Bags"];
+const SIZES = ["S", "M", "L", "XL", "FREE SIZE"];
 
 interface SearchParams {
   category?: string;
@@ -49,15 +49,13 @@ async function getProducts(searchParams: SearchParams): Promise<Product[]> {
   if (searchParams.filter === "new") query = query.eq("is_new_arrival", true);
   if (searchParams.filter === "featured") query = query.eq("is_featured", true);
   if (searchParams.filter === "bestseller") query = query.eq("is_best_seller", true);
+  if (searchParams.filter === "sale") query = query.not("discount_price", "is", null).gt("discount_price", 0);
 
   if (searchParams.search) {
     const s = searchParams.search;
     query = query.or(`name.ilike.%${s}%,description.ilike.%${s}%,category.ilike.%${s}%`);
   }
-
-  if (searchParams.size) {
-    query = query.contains("sizes", [{ size: searchParams.size }]);
-  }
+  // Size filter applied in JS after fetch (JSONB partial-object matching)
 
   if (searchParams.minPrice) {
     query = query.gte("price", parseFloat(searchParams.minPrice));
@@ -72,8 +70,21 @@ async function getProducts(searchParams: SearchParams): Promise<Product[]> {
   else if (sortBy === "price_desc") query = query.order("price", { ascending: false });
   else query = query.order("created_at", { ascending: false });
 
-  const { data } = await query.limit(48);
-  return (data as Product[]) || [];
+  const { data } = await query.limit(200);
+  let products = (data as Product[]) || [];
+
+  // Size filter — JS post-filter (JSONB partial-object matching not reliable via ORM)
+  if (searchParams.size) {
+    const sizeKey = searchParams.size.toUpperCase();
+    products = products.filter((p) =>
+      Array.isArray(p.sizes) &&
+      p.sizes.some((s: { size: string; stock: number }) =>
+        s.size?.toUpperCase() === sizeKey && s.stock > 0
+      )
+    );
+  }
+
+  return products.slice(0, 48);
 }
 
 interface ShopPageProps {

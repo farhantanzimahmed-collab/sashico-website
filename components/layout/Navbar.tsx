@@ -15,6 +15,7 @@ import { SiteSettings } from "@/lib/types";
 const NAV_LEFT = [
   { href: "/shop", label: "Shop" },
   { href: "/shop?filter=new", label: "New Arrivals" },
+  { href: "/shop?filter=sale", label: "Sale", sale: true },
 ];
 const NAV_RIGHT = [
   { href: "/shop?filter=bestseller", label: "Best Sellers" },
@@ -54,16 +55,18 @@ export default function Navbar({ settings }: NavbarProps) {
   const isHome = pathname === "/";
   const transparent = isHome && !scrolled;
 
-  const navLinkClass = (href: string) => cn(
+  const navLinkClass = (href: string, sale?: boolean) => cn(
     "label-xs transition-colors duration-200 whitespace-nowrap",
-    transparent
-      ? pathname === href ? "text-white" : "text-white/60 hover:text-white"
-      : pathname === href ? "text-black" : "text-brand-gray-500 hover:text-black"
+    sale
+      ? "text-red-500 hover:text-red-600 font-semibold"
+      : transparent
+        ? pathname === href ? "text-white" : "text-white/90 hover:text-white"
+        : pathname === href ? "text-black" : "text-brand-gray-600 hover:text-black"
   );
 
   const iconClass = cn(
     "transition-colors",
-    transparent ? "text-white/65 hover:text-white" : "text-brand-gray-500 hover:text-black"
+    transparent ? "text-white/90 hover:text-white" : "text-brand-gray-600 hover:text-black"
   );
 
   return (
@@ -103,7 +106,7 @@ export default function Navbar({ settings }: NavbarProps) {
 
               <nav className="hidden lg:flex items-center gap-8 xl:gap-10">
                 {NAV_LEFT.map((link) => (
-                  <Link key={link.href} href={link.href} className={navLinkClass(link.href)}>
+                  <Link key={link.href} href={link.href} className={navLinkClass(link.href, link.sale)}>
                     {link.label}
                   </Link>
                 ))}

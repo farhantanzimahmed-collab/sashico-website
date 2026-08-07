@@ -1,13 +1,11 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import ProductSection from "@/components/home/ProductSection";
-import BrandStory from "@/components/home/BrandStory";
 import Reviews from "@/components/home/Reviews";
 import Newsletter from "@/components/home/Newsletter";
-import CategoryStrip from "@/components/home/CategoryStrip";
-import ShopBySize from "@/components/home/ShopBySize";
 import { Product, Review, SiteSettings } from "@/lib/types";
 
 const PRODUCT_COLS = "id,name,slug,price,discount_price,category,category_id,images,sizes,stock_quantity,is_featured,is_new_arrival,is_best_seller,is_active,meta_title,meta_description,description,created_at,updated_at";
@@ -113,7 +111,17 @@ export default async function HomePage() {
   return (
     <>
       <Hero settings={siteSettings} featuredImages={heroImages} />
-      <CategoryStrip />
+
+      {/* Shop CTA */}
+      <section className="py-12 flex justify-center border-b border-black/8">
+        <Link
+          href="/shop"
+          className="px-12 py-4 bg-black text-white label-xs tracking-widest hover:bg-brand-gray-800 transition-colors"
+        >
+          SHOP ALL
+        </Link>
+      </section>
+
       {newArrivals.length > 0 && (
         <ProductSection
           title="New Arrivals"
@@ -123,18 +131,6 @@ export default async function HomePage() {
           index={1}
         />
       )}
-      {featured.length > 0 && (
-        <div className="bg-brand-gray-50">
-          <ProductSection
-            title="Featured Pieces"
-            subtitle="Curated selection of our finest work"
-            products={featured}
-            viewAllHref="/shop?filter=featured"
-            index={2}
-          />
-        </div>
-      )}
-      <BrandStory settings={siteSettings} />
       {bestSellers.length > 0 && (
         <Suspense fallback={null}>
           <ProductSection
@@ -149,7 +145,6 @@ export default async function HomePage() {
       <Suspense fallback={null}>
         <Reviews reviews={reviews} />
       </Suspense>
-      <ShopBySize />
       <Newsletter />
     </>
   );
