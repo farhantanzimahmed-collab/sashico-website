@@ -4,6 +4,7 @@ import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import TrackingScripts from "@/components/tracking/TrackingScripts";
 import StoreHydration from "@/components/StoreHydration";
+import LivingWeave from "@/components/ui/LivingWeave";
 import { MarketingSettings } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -92,6 +93,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://kkvybxtgpczbomjesfxs.supabase.co" />
       </head>
       <body>
+        <LivingWeave />
         {children}
         <StoreHydration />
         <TrackingScripts settings={marketingSettings} />
