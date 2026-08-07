@@ -37,12 +37,13 @@ async function getProducts(searchParams: SearchParams): Promise<Product[]> {
     .eq("is_active", true);
 
   if (searchParams.category && searchParams.category !== "all") {
-    const cat = searchParams.category;
-    // Match "t-shirts" → "T-Shirts", "t shirts", "tshirts" etc.
-    const catSpace = cat.replace(/-/g, " ");
-    const catNoSep = cat.replace(/-/g, "");
+    // Use ilike on the first significant word for robust matching
+    // e.g. "cuban shirts" → first word "cuban", "t-shirts" → "t-shirt", "bags" → "bag", "winter" → "winter"
+    const cat = searchParams.category.toLowerCase();
+    const firstWord = cat.split(/[\s-]/)[0]; // "cuban", "t", "bags", "winter"
+    const catSpace = cat.replace(/-/g, " "); // "cuban shirts", "t shirts"
     query = query.or(
-      `category.ilike.%${cat}%,category.ilike.%${catSpace}%,category.ilike.%${catNoSep}%`
+      `category.ilike.%${catSpace}%,category.ilike.%${cat}%,category.ilike.%${firstWord}%`
     );
   }
 
