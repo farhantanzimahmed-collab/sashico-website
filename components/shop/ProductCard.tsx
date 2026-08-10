@@ -53,23 +53,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     setTimeout(() => setAddingToCart(false), 600);
   }
 
-  function handleMouseEnter() {
-    if (typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches) {
-      setHovered(true);
-    }
-  }
-
   return (
     <article
       className="group"
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* ── Image + overlays ─────────────────────── */}
+      {/* ── Image ─────────────────────────────────── */}
       <div className="relative overflow-hidden bg-brand-gray-100 aspect-[3/4] rounded-lg">
         <Link href={`/shop/${product.slug}`} className="block absolute inset-0">
-
-          {/* Main image */}
           {mainImage ? (
             <>
               <Image
@@ -78,10 +70,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 priority={priority}
-                className={cn(
-                  "object-cover transition-all duration-700 ease-out",
-                  hovered && hoverImage ? "opacity-0 scale-[1.03]" : "opacity-100 scale-100"
-                )}
+                className="object-cover"
+                style={{ display: hovered && hoverImage ? "none" : "block" }}
               />
               {hoverImage && (
                 <Image
@@ -89,10 +79,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                   alt={product.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={cn(
-                    "object-cover transition-all duration-700 ease-out",
-                    hovered ? "opacity-100 scale-100" : "opacity-0 scale-[1.03]"
-                  )}
+                  className="object-cover"
+                  style={{ display: hovered ? "block" : "none" }}
                 />
               )}
             </>
@@ -101,10 +89,9 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               <span className="display-heading text-[2rem] text-brand-gray-200 tracking-widest">SCO</span>
             </div>
           )}
-
         </Link>
 
-        {/* Badges — top left */}
+        {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none z-10">
           {product.is_new_arrival && (
             <span className="label-xs bg-black text-white px-2.5 py-1 rounded">New</span>
@@ -117,12 +104,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           )}
         </div>
 
-        {/* Wishlist — top right */}
+        {/* Wishlist */}
         <button
           onClick={() => toggleItem(product.id)}
           className={cn(
-            "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg transition-all duration-200 z-10",
-            "opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0",
+            "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg z-10",
+            hovered ? "opacity-100" : "opacity-0",
             wishlisted ? "text-black" : "text-brand-gray-300 hover:text-black"
           )}
           aria-label="Wishlist"
@@ -130,14 +117,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <Heart className={cn("h-3.5 w-3.5", wishlisted && "fill-current")} />
         </button>
 
-        {/* Quick Add — bottom */}
+        {/* Quick Add */}
         {inStock && (
           <button
             onClick={handleQuickAdd}
             disabled={addingToCart}
             className={cn(
-              "absolute bottom-0 inset-x-0 bg-black text-white py-3.5 label-xs flex items-center justify-center gap-2 transition-all duration-300 z-10",
-              hovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"
+              "absolute bottom-0 inset-x-0 bg-black text-white py-3.5 label-xs flex items-center justify-center gap-2 z-10",
+              hovered ? "opacity-100" : "opacity-0"
             )}
           >
             <Plus className="h-3 w-3" />
@@ -149,7 +136,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       {/* ── Info ──────────────────────────────────── */}
       <div className="pt-3.5">
         <Link href={`/shop/${product.slug}`}>
-          <h3 className="text-sm font-normal text-black hover:text-brand-gray-500 transition-colors leading-snug">
+          <h3 className="text-sm font-normal text-black hover:text-brand-gray-500 leading-snug">
             {product.name}
           </h3>
         </Link>
