@@ -75,20 +75,38 @@ export default function Navbar({ settings }: NavbarProps) {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         !transparent && "bg-white/96 backdrop-blur-md border-b border-black/8"
       )}>
-        {/* Announcement bar */}
-        <div
-          className="py-2.5 text-center"
-          style={{
-            backgroundColor: settings?.announcement_bar_bg_color || "#000000",
-            color: settings?.announcement_bar_text_color || "#FFFFFF",
-          }}
-        >
-          <p className="label-xs opacity-85">
-            {settings?.announcement_bar_enabled && settings?.announcement_bar_text
+        {/* Announcement bar — scrolling marquee */}
+        {(() => {
+          const text =
+            settings?.announcement_bar_enabled && settings?.announcement_bar_text
               ? settings.announcement_bar_text
-              : "Free shipping on orders above ৳2,000"}
-          </p>
-        </div>
+              : "UP TO 70% OFF ON ALL ITEMS — SHOP THE SALE NOW";
+          const repeated = Array(8).fill(text);
+          return (
+            <div
+              className="overflow-hidden py-3"
+              style={{
+                backgroundColor: settings?.announcement_bar_bg_color || "#7a0000",
+                color: settings?.announcement_bar_text_color || "#FFFFFF",
+              }}
+            >
+              <div
+                className="flex whitespace-nowrap w-max"
+                style={{ animation: "marqueeScroll 28s linear infinite" }}
+              >
+                {repeated.map((t, i) => (
+                  <span
+                    key={i}
+                    className="text-sm font-bold tracking-widest uppercase mx-10"
+                  >
+                    {t}
+                    <span className="mx-8 opacity-40">★</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Main bar */}
         <div className="px-5 sm:px-8 lg:px-12">

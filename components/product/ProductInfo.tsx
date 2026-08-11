@@ -81,7 +81,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <span className="label-xs border border-brand-gray-200 text-brand-gray-600 px-2.5 py-1 rounded">Best Seller</span>
         )}
         {hasDiscount && (
-          <span className="label-xs bg-brand-gray-100 text-black px-2.5 py-1 rounded">−{discount}%</span>
+          <span className="label-xs bg-red-500 text-white px-2.5 py-1 rounded font-bold">SALE</span>
         )}
       </div>
 
@@ -91,20 +91,30 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       </h1>
 
       {/* Price */}
-      <div className="flex items-baseline gap-4">
-        <span className="text-2xl font-semibold text-black">
-          {formatPrice(price)}
-        </span>
+      <div className="space-y-1.5">
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <span className={`text-4xl font-bold ${hasDiscount ? "text-red-500" : "text-black"}`}>
+            {formatPrice(price)}
+          </span>
+          {hasDiscount && (
+            <>
+              <span className="text-xl text-brand-gray-400 line-through">
+                {formatPrice(product.price)}
+              </span>
+              <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
+                −{discount}% OFF
+              </span>
+            </>
+          )}
+        </div>
         {hasDiscount && (
-          <>
-            <span className="text-base text-brand-gray-400 line-through">
-              {formatPrice(product.price)}
-            </span>
-            <span className="text-sm text-green-700">
-              Save {formatPrice(product.price - product.discount_price!)}
-            </span>
-          </>
+          <p className="text-sm text-brand-gray-500">
+            You save <span className="font-semibold text-red-500">{formatPrice(product.price - product.discount_price!)}</span>
+          </p>
         )}
+        <p className="text-xs text-brand-gray-400">
+          Delivery: <span className="text-brand-gray-600">৳80 inside Dhaka</span> · <span className="text-brand-gray-600">৳140 elsewhere</span>
+        </p>
       </div>
 
       {/* Stock indicator */}

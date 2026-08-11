@@ -97,7 +97,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             <span className="label-xs bg-black text-white px-2.5 py-1 rounded">New</span>
           )}
           {hasDiscount && (
-            <span className="label-xs bg-white text-black px-2.5 py-1 rounded">−{discount}%</span>
+            <span className="label-xs bg-red-500 text-white px-2.5 py-1 rounded font-bold">−{discount}%</span>
           )}
           {!inStock && (
             <span className="label-xs bg-brand-gray-200 text-brand-gray-600 px-2.5 py-1 rounded">Sold Out</span>
@@ -141,7 +141,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </h3>
         </Link>
         <div className="flex items-center gap-2.5 mt-1.5">
-          <span className="text-sm font-medium text-black" style={{ fontVariantNumeric: "tabular-nums" }}>
+          <span
+            className={`text-sm font-bold ${hasDiscount ? "text-red-500" : "text-black"}`}
+            style={{ fontVariantNumeric: "tabular-nums" }}
+          >
             {formatPrice(price)}
           </span>
           {hasDiscount && (
