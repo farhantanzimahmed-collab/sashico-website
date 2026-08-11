@@ -74,9 +74,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* Category + badges */}
       <div className="flex items-center gap-3 flex-wrap">
         <span className="label-xs text-brand-gray-400">{product.category}</span>
-        {product.is_new_arrival && (
-          <span className="label-xs bg-black text-white px-2.5 py-1 rounded">New Arrival</span>
-        )}
+
         {product.is_best_seller && (
           <span className="label-xs border border-brand-gray-200 text-brand-gray-600 px-2.5 py-1 rounded">Best Seller</span>
         )}

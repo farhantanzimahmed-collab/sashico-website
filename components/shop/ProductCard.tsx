@@ -93,9 +93,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none z-10">
-          {product.is_new_arrival && (
-            <span className="label-xs bg-black text-white px-2.5 py-1 rounded">New</span>
-          )}
+
           {hasDiscount && (
             <span className="label-xs bg-red-500 text-white px-2.5 py-1 rounded font-bold">−{discount}%</span>
           )}
