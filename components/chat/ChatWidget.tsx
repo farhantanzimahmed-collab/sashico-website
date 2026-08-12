@@ -88,17 +88,17 @@ export default function ChatWidget() {
   }
 
   // Position chat above mobile bottom nav on small screens
-  const chatBottom = "bottom-[4.5rem] sm:bottom-24";
-  const btnBottom = "bottom-[4.5rem] sm:bottom-5";
+  const chatBottom = "bottom-[4.5rem] sm:bottom-6";
+  const btnBottom = "bottom-[4.5rem] sm:bottom-6";
 
   return (
     <>
       {/* Chat panel */}
       <div className={cn(
-        `fixed ${chatBottom} right-3 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[380px] bg-white border border-brand-gray-200 shadow-xl flex flex-col transition-all duration-300 origin-bottom-right`,
+        `fixed ${chatBottom} right-3 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[380px] bg-white border border-brand-gray-200 shadow-xl flex flex-col origin-bottom-right`,
         open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
       )}
-        style={{ maxHeight: "70vh", height: "480px" }}
+        style={{ height: "min(480px, calc(100vh - 8rem))" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 bg-brand-black text-white flex-shrink-0">
@@ -186,10 +186,13 @@ export default function ChatWidget() {
         </div>
       </div>
 
-      {/* Floating button — hidden on very small screens when bottom nav visible */}
+      {/* Floating button — hidden on mobile when chat is open (header has X already) */}
       <button
         onClick={() => setOpen(!open)}
-        className={`fixed ${btnBottom} right-3 sm:right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 bg-brand-black text-white flex items-center justify-center shadow-lg hover:bg-brand-gray-800 transition-all duration-200 hover:scale-105 active:scale-95`}
+        className={cn(
+          `fixed ${btnBottom} right-3 sm:right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 bg-brand-black text-white items-center justify-center shadow-lg`,
+          open ? "hidden sm:flex" : "flex"
+        )}
         aria-label="Chat support"
       >
         {open ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />}
