@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT = `You are Sashico's friendly customer support assistant. Sashico is a premium embroidery streetwear brand handcrafted in Bangladesh.
@@ -13,7 +12,7 @@ BRAND INFO:
 SHIPPING POLICY:
 - Standard delivery: 3-5 business days inside Dhaka
 - Outside Dhaka: 5-7 business days
-- Shipping cost: ৳80 flat rate
+- Shipping cost: ৳80 inside Dhaka, ৳140 outside Dhaka
 - FREE shipping on orders above ৳2,000
 
 PAYMENT:
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Message required" }, { status: 400 });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
         reply: "I'm not available right now. Please email us at hello@sashico.com and we'll get back to you shortly!"
@@ -132,21 +131,53 @@ ${order.tracking_number ? `- Tracking: ${order.tracking_number}` : ""}`;
       pageContextStr = `\n\nCURRENT PAGE CONTEXT:\n${typeof pageContext === "string" ? pageContext : JSON.stringify(pageContext)}`;
     }
 
-    const client = new Anthropic({ apiKey });
+    const fullSystemPrompt = SYSTEM_PROMPT + productContext + orderContext + pageContextStr;
 
-    const messages: Anthropic.MessageParam[] = [
-      ...((history as Anthropic.MessageParam[]) || []).slice(-10),
-      { role: "user", content: message },
-    ];
+    // Build conversation contents for Gemini
+    const contents: { role: string; parts: { text: string }[] }[] = [];
 
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 400,
-      system: SYSTEM_PROMPT + productContext + orderContext + pageContextStr,
-      messages,
-    });
+    // Add history (alternating user/model)
+    if (Array.isArray(history) && history.length > 0) {
+      const recent = history.slice(-10);
+      for (const msg of recent) {
+        contents.push({
+          role: msg.role === "assistant" ? "model" : "user",
+          parts: [{ text: msg.content }],
+        });
+      }
+    }
 
-    const reply = response.content[0].type === "text" ? response.content[0].text : "";
+    // Add current user message
+    contents.push({ role: "user", parts: [{ text: message }] });
+
+    const body = {
+      system_instruction: { parts: [{ text: fullSystemPrompt }] },
+      contents,
+      generationConfig: {
+        maxOutputTokens: 400,
+        temperature: 0.7,
+      },
+    };
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Gemini API error:", data);
+      return NextResponse.json({
+        reply: "Sorry, I'm having trouble right now. Email us at hello@sashico.com and we'll help you out!"
+      });
+    }
+
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     return NextResponse.json({ reply });
   } catch (err) {
