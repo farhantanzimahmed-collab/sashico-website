@@ -50,6 +50,16 @@ export default function ChatWidget() {
     return `Page: ${url}\nTitle: ${title}`;
   }
 
+  function cleanMarkdown(text: string): string {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, "$1")   // **bold**
+      .replace(/\*(.*?)\*/g, "$1")        // *italic*
+      .replace(/__(.*?)__/g, "$1")        // __bold__
+      .replace(/`(.*?)`/g, "$1")          // `code`
+      .replace(/#{1,6}\s/g, "")           // # headings
+      .replace(/^\s*[\*\-]\s/gm, "- ");   // normalise bullet points
+  }
+
   async function sendMessage(text: string) {
     if (!text.trim() || loading) return;
     const userMsg: Message = { role: "user", content: text };
@@ -68,7 +78,7 @@ export default function ChatWidget() {
         }),
       });
       const { reply } = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: reply || "Sorry, something went wrong." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: cleanMarkdown(reply || "Sorry, something went wrong.") }]);
       if (!open) setUnread(true);
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't connect. Email hello@sashico.com for help." }]);

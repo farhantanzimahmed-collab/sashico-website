@@ -51,7 +51,8 @@ GUIDELINES:
 - Recommend related products when it feels natural
 - Never make up prices or stock levels — use the product data provided
 - Keep responses brief (2-4 sentences max unless more detail is needed)
-- Sign off warmly but don't repeat greetings`;
+- Sign off warmly but don't repeat greetings
+- IMPORTANT: Do NOT use markdown formatting. No **bold**, no *italic*, no bullet points with asterisks. Use plain text only. For lists, use a dash (-) or plain line breaks.`;
 
 export async function POST(req: NextRequest) {
   try {
