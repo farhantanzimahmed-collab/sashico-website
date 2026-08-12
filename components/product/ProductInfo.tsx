@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, Share2, Ruler, ChevronDown, ChevronUp, Truck, ShieldCheck } from "lucide-react";
 import { Product } from "@/lib/types";
 import { formatPrice, getDiscountPercentage } from "@/lib/utils";
+import { getSizeChart } from "@/lib/size-charts";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useTracking } from "@/hooks/useTracking";
@@ -22,6 +23,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(true);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [shippingOpen, setShippingOpen] = useState(false);
   const [sizeError, setSizeError] = useState(false);
 
@@ -34,6 +36,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const hasDiscount = !!product.discount_price && product.discount_price < product.price;
   const discount = hasDiscount ? getDiscountPercentage(product.price, product.discount_price!) : 0;
   const inStock = product.stock_quantity > 0;
+  const sizeChart = getSizeChart(product.category);
 
   function handleAddToCart() {
     if (!selectedSize) {
@@ -291,6 +294,39 @@ export default function ProductInfo({ product }: ProductInfoProps) {
               </ul>
             ),
           },
+          ...(sizeChart ? [{
+            label: "Size Chart",
+            open: sizeChartOpen,
+            toggle: () => setSizeChartOpen(!sizeChartOpen),
+            content: (
+              <div className="pb-1">
+                <p className="text-xs text-brand-gray-400 mb-3">All measurements in {sizeChart.unit}</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b border-black/10">
+                        {sizeChart.headers.map((h) => (
+                          <th key={h} className="text-left py-2 pr-6 label-xs text-black font-semibold whitespace-nowrap">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sizeChart.rows.map((row) => (
+                        <tr key={row.size} className="border-b border-black/6 last:border-0">
+                          <td className="py-2.5 pr-6 font-medium text-black">{row.size}</td>
+                          <td className="py-2.5 pr-6 text-brand-gray-600">{row.length}</td>
+                          <td className="py-2.5 pr-6 text-brand-gray-600">{row.chest}</td>
+                          <td className="py-2.5 pr-6 text-brand-gray-600">{row.sleeve}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ),
+          }] : []),
           {
             label: "Shipping & Returns",
             open: shippingOpen,
