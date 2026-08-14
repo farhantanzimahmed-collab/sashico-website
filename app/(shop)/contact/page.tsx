@@ -21,8 +21,8 @@ type FormData = z.infer<typeof schema>;
 const DEFAULT_INFO = {
   heading: "Get In Touch",
   body: "Have a question about an order, a product, or just want to say hello — we're here for it.",
-  email: "hello@sashico.com",
-  phone: "+880 1700-000000",
+  email: "sashicofficial2020@gmail.com",
+  phone: "01628340463",
   address: "Dhaka, Bangladesh",
   hours: "Mon–Sat, 10am–6pm",
 };
@@ -110,10 +110,10 @@ export default function ContactPage() {
             <div>
               <p className="label-xs text-brand-gray-400 mb-4">Follow Us</p>
               <div className="flex gap-4">
-                <a href="#" className="flex items-center gap-2 text-sm font-sans text-brand-black hover:text-brand-gray-500 transition-colors">
+                <a href="https://www.instagram.com/sashico_official/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-sans text-brand-black hover:text-brand-gray-500 transition-colors">
                   <Instagram className="h-4 w-4" /> Instagram
                 </a>
-                <a href="#" className="flex items-center gap-2 text-sm font-sans text-brand-black hover:text-brand-gray-500 transition-colors">
+                <a href="https://www.facebook.com/Sashico.20" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-sans text-brand-black hover:text-brand-gray-500 transition-colors">
                   <Facebook className="h-4 w-4" /> Facebook
                 </a>
               </div>

@@ -73,8 +73,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   about_content:
     "Sashico was born from a deep reverence for the art of embroidery — a craft that has been part of Bangladesh's cultural identity for centuries.",
   about_image: null,
-  contact_email: "hello@sashico.com",
-  contact_phone: "+880 1700-000000",
+  contact_email: "sashicofficial2020@gmail.com",
+  contact_phone: "01628340463",
   contact_address: "Dhaka, Bangladesh",
   instagram_url: null,
   facebook_url: null,

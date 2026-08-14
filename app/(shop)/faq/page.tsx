@@ -13,7 +13,7 @@ const DEFAULT_CONTENT = {
       items: [
         { q: "How do I place an order?", a: "Browse our shop, select your product and size, and click Add to Cart. Proceed to checkout and fill in your delivery details." },
         { q: "What payment methods do you accept?", a: "We accept Cash on Delivery (COD). Pay when the order arrives at your door — no upfront payment required." },
-        { q: "Can I modify or cancel my order?", a: "Orders can be modified or cancelled within 1 hour of placement. Contact us at hello@sashico.com immediately." },
+        { q: "Can I modify or cancel my order?", a: "Orders can be modified or cancelled within 1 hour of placement. Contact us at sashicofficial2020@gmail.com immediately." },
       ],
     },
     {
@@ -36,7 +36,7 @@ const DEFAULT_CONTENT = {
       name: "Returns & Exchanges",
       items: [
         { q: "What is your return policy?", a: "We accept returns within 7 days of delivery for unworn, unwashed items with tags intact." },
-        { q: "How do I initiate a return?", a: "Email hello@sashico.com with your order number and reason. We'll send return instructions within 24 hours." },
+        { q: "How do I initiate a return?", a: "Email sashicofficial2020@gmail.com with your order number and reason. We'll send return instructions within 24 hours." },
       ],
     },
   ],

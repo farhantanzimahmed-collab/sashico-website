@@ -81,7 +81,7 @@ export default function ChatWidget() {
       setMessages((prev) => [...prev, { role: "assistant", content: cleanMarkdown(reply || "Sorry, something went wrong.") }]);
       if (!open) setUnread(true);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't connect. Email hello@sashico.com for help." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't connect. Email sashicofficial2020@gmail.com for help." }]);
     } finally {
       setLoading(false);
     }

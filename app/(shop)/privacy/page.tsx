@@ -20,7 +20,7 @@ const DEFAULT = {
 <p>We use essential cookies to maintain your shopping cart. We may also use analytics cookies to understand site usage.</p>
 
 <h2>Contact</h2>
-<p>For privacy concerns, email <a href="mailto:hello@sashico.com">hello@sashico.com</a>.</p>`,
+<p>For privacy concerns, email <a href="mailto:sashicofficial2020@gmail.com">sashicofficial2020@gmail.com</a>.</p>`,
 };
 
 async function getContent() {

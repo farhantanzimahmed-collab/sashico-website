@@ -214,8 +214,8 @@ export default function PageEditor({ slug, label, initialContent, pageId }: Page
   if (slug === "contact") return (
     <div className="space-y-6">
       <Input label="Page Heading" value={str("heading")} onChange={(e) => set("heading", e.target.value)} placeholder="Get In Touch" />
-      <Input label="Email" type="email" value={str("email")} onChange={(e) => set("email", e.target.value)} placeholder="hello@sashico.com" />
-      <Input label="Phone / WhatsApp" value={str("phone")} onChange={(e) => set("phone", e.target.value)} placeholder="+880 1700-000000" />
+      <Input label="Email" type="email" value={str("email")} onChange={(e) => set("email", e.target.value)} placeholder="sashicofficial2020@gmail.com" />
+      <Input label="Phone / WhatsApp" value={str("phone")} onChange={(e) => set("phone", e.target.value)} placeholder="01628340463" />
       <Input label="Address" value={str("address")} onChange={(e) => set("address", e.target.value)} placeholder="Dhaka, Bangladesh" />
       <Input label="Business Hours" value={str("hours")} onChange={(e) => set("hours", e.target.value)} placeholder="Mon–Sat, 10am–6pm" />
       <div>

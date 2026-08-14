@@ -23,8 +23,8 @@ const PAGE_META: Record<string, { label: string; defaults: Record<string, unknow
     defaults: {
       heading: "Get In Touch",
       body: "Have a question about an order, a product, or just want to say hello — we're here for it.",
-      email: "hello@sashico.com",
-      phone: "+880 1700-000000",
+      email: "sashicofficial2020@gmail.com",
+      phone: "01628340463",
       address: "Dhaka, Bangladesh",
       hours: "Mon–Sat, 10am–6pm",
     },
@@ -52,7 +52,7 @@ const PAGE_META: Record<string, { label: string; defaults: Record<string, unknow
           name: "Returns & Exchanges",
           items: [
             { q: "What is your return policy?", a: "We accept returns within 7 days of delivery for unworn, unwashed items with tags intact." },
-            { q: "How do I initiate a return?", a: "Email hello@sashico.com with your order number and reason for return." },
+            { q: "How do I initiate a return?", a: "Email sashicofficial2020@gmail.com with your order number and reason for return." },
           ],
         },
       ],
@@ -99,7 +99,7 @@ const PAGE_META: Record<string, { label: string; defaults: Record<string, unknow
 <p>We accept returns within <strong>7 days</strong> of delivery for unworn, unwashed items with tags attached.</p>
 
 <h2>How to Return</h2>
-<p>Email <a href="mailto:hello@sashico.com">hello@sashico.com</a> with your order number and reason. We'll send return instructions within 24 hours.</p>
+<p>Email <a href="mailto:sashicofficial2020@gmail.com">sashicofficial2020@gmail.com</a> with your order number and reason. We'll send return instructions within 24 hours.</p>
 
 <h2>Refunds</h2>
 <p>Refunds are processed within 48 hours of receiving the returned item.</p>
@@ -122,7 +122,7 @@ const PAGE_META: Record<string, { label: string; defaults: Record<string, unknow
 <p>We use essential cookies to maintain your shopping cart. We may also use analytics cookies to understand site usage.</p>
 
 <h2>Contact</h2>
-<p>For privacy concerns, email <a href="mailto:hello@sashico.com">hello@sashico.com</a>.</p>`,
+<p>For privacy concerns, email <a href="mailto:sashicofficial2020@gmail.com">sashicofficial2020@gmail.com</a>.</p>`,
     },
   },
   terms: {

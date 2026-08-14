@@ -312,7 +312,7 @@ async function handleCommand(msg: Record<string, unknown>, config: TelegramConfi
       reply = [
         `🛠 <b>SASHICO SUPPORT</b>`,
         ``,
-        `📧 Email: support@sashico.com`,
+        `📧 Email: sashicofficial2020@gmail.com`,
         `🌐 Admin: <a href="https://sashico.vercel.app/admin">sashico.vercel.app/admin</a>`,
       ].join("\n");
       break;

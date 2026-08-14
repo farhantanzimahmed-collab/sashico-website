@@ -71,7 +71,7 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-black/8">
           <p className="label-xs text-brand-gray-400">Dhaka, Bangladesh</p>
-          <p className="label-xs text-brand-gray-400 mt-1">hello@sashico.com</p>
+          <p className="label-xs text-brand-gray-400 mt-1">sashicofficial2020@gmail.com</p>
         </div>
       </div>
     </>

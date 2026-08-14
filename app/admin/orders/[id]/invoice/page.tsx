@@ -167,7 +167,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
           <div className="footer">
             <p>Thank you for shopping with {settings?.site_name || "Sashico"}!</p>
-            <p style={{ marginTop: '4px' }}>For questions about this order, contact {settings?.contact_email || "support@sashico.com"}</p>
+            <p style={{ marginTop: '4px' }}>For questions about this order, contact {settings?.contact_email || "sashicofficial2020@gmail.com"}</p>
           </div>
         </div>
 

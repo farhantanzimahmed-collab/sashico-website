@@ -23,7 +23,7 @@ RETURN & EXCHANGE POLICY:
 - Returns accepted within 7 days of delivery
 - Free exchange on size issues
 - Item must be unused, unwashed, with tags attached
-- Contact: hello@sashico.com to initiate a return
+- Contact: sashicofficial2020@gmail.com to initiate a return
 
 SIZING:
 - We follow standard BD sizing: XS, S, M, L, XL, XXL, 3XL
@@ -31,7 +31,7 @@ SIZING:
 - When in doubt, size up — our pieces have a relaxed streetwear fit
 
 CONTACT:
-- Email: hello@sashico.com
+- Email: sashicofficial2020@gmail.com
 - Phone: +880 1628340463
 - Address: Dhaka, Bangladesh
 - Facebook: https://www.facebook.com/Sashico.20
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
-        reply: "I'm not available right now. Please email us at hello@sashico.com and we'll get back to you shortly!"
+        reply: "I'm not available right now. Please email us at sashicofficial2020@gmail.com and we'll get back to you shortly!"
       });
     }
 
@@ -174,7 +174,7 @@ ${order.tracking_number ? `- Tracking: ${order.tracking_number}` : ""}`;
     if (!res.ok) {
       console.error("Gemini API error:", data);
       return NextResponse.json({
-        reply: "Sorry, I'm having trouble right now. Email us at hello@sashico.com and we'll help you out!"
+        reply: "Sorry, I'm having trouble right now. Email us at sashicofficial2020@gmail.com and we'll help you out!"
       });
     }
 
@@ -184,7 +184,7 @@ ${order.tracking_number ? `- Tracking: ${order.tracking_number}` : ""}`;
   } catch (err) {
     console.error("Chat API error:", err);
     return NextResponse.json({
-      reply: "Sorry, I'm having trouble right now. Email us at hello@sashico.com and we'll help you out!"
+      reply: "Sorry, I'm having trouble right now. Email us at sashicofficial2020@gmail.com and we'll help you out!"
     });
   }
 }

@@ -14,7 +14,7 @@ const DEFAULT = {
 <p>We accept returns within <strong>7 days</strong> of delivery for unworn, unwashed items with tags attached.</p>
 
 <h2>How to Return</h2>
-<p>Email <a href="mailto:hello@sashico.com">hello@sashico.com</a> with your order number and reason. We'll send return instructions within 24 hours.</p>
+<p>Email <a href="mailto:sashicofficial2020@gmail.com">sashicofficial2020@gmail.com</a> with your order number and reason. We'll send return instructions within 24 hours.</p>
 
 <h2>Refunds</h2>
 <p>Refunds are processed within 48 hours of receiving the returned item.</p>
