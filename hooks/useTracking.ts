@@ -2,6 +2,30 @@
 
 import { useCallback } from "react";
 
+// Fire server-side CAPI event (alongside browser pixel for deduplication)
+async function sendCAPI(
+  eventName: string,
+  eventId: string,
+  customData: Record<string, unknown> = {},
+  userData: Record<string, string> = {}
+) {
+  try {
+    await fetch("/api/capi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventName,
+        eventId,
+        customData,
+        userData,
+        eventSourceUrl: typeof window !== "undefined" ? window.location.href : "",
+      }),
+    });
+  } catch {
+    // silently fail — browser pixel still fires
+  }
+}
+
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
@@ -91,7 +115,8 @@ export function useTracking() {
   );
 
   const trackAddToCart = useCallback(
-    (productId: string, productName: string, price: number, quantity: number) =>
+    (productId: string, productName: string, price: number, quantity: number) => {
+      const eventId = `atc_${productId}_${Date.now()}`;
       track({
         type: "AddToCart",
         data: {
@@ -100,25 +125,60 @@ export function useTracking() {
           value: price * quantity,
           num_items: quantity,
         },
-      }),
+      });
+      // Also fire server-side CAPI (deduped via eventId)
+      if (typeof window !== "undefined" && window.fbq) {
+        window.fbq("track", "AddToCart", {
+          content_ids: [productId],
+          content_name: productName,
+          value: price * quantity,
+          currency: "BDT",
+          num_items: quantity,
+        }, { eventID: eventId });
+      }
+      sendCAPI("AddToCart", eventId, {
+        content_ids: [productId],
+        content_name: productName,
+        value: price * quantity,
+        currency: "BDT",
+        num_items: quantity,
+      });
+    },
     [track]
   );
 
   const trackBeginCheckout = useCallback(
-    (value: number, numItems: number) =>
-      track({
-        type: "InitiateCheckout",
-        data: { value, num_items: numItems },
-      }),
+    (value: number, numItems: number) => {
+      const eventId = `checkout_${Date.now()}`;
+      track({ type: "InitiateCheckout", data: { value, num_items: numItems } });
+      sendCAPI("InitiateCheckout", eventId, { value, currency: "BDT", num_items: numItems });
+    },
     [track]
   );
 
   const trackPurchase = useCallback(
-    (orderId: string, value: number, numItems: number) =>
+    (orderId: string, value: number, numItems: number, userData?: { email?: string; phone?: string; name?: string }) => {
+      const eventId = `purchase_${orderId}`;
       track({
         type: "Purchase",
         data: { order_id: orderId, value, num_items: numItems },
-      }),
+      });
+      // Fire pixel with eventId for deduplication
+      if (typeof window !== "undefined" && window.fbq) {
+        window.fbq("track", "Purchase", {
+          value,
+          currency: "BDT",
+          num_items: numItems,
+          order_id: orderId,
+        }, { eventID: eventId });
+      }
+      sendCAPI("Purchase", eventId, {
+        value,
+        currency: "BDT",
+        num_items: numItems,
+        order_id: orderId,
+      }, userData || {});
+    },
     [track]
   );
 
