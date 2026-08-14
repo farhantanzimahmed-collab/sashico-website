@@ -68,7 +68,7 @@ export default async function AboutPage() {
                 ))}
               </div>
             </div>
-            <div className="relative aspect-[4/5] bg-brand-gray-100 lg:-mt-0 mt-4">
+            <div className="relative aspect-[4/5] bg-brand-black overflow-hidden lg:-mt-0 mt-4">
               {settings?.about_image ? (
                 <Image
                   src={getImageUrl(settings.about_image)}
@@ -78,13 +78,14 @@ export default async function AboutPage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <p className="display-heading text-7xl text-brand-gray-200 tracking-[0.3em]">SCO</p>
-                    <div className="mt-4 w-16 h-px bg-brand-gray-200 mx-auto" />
-                    <p className="mt-4 label-xs text-brand-gray-300">Est. 2024</p>
-                  </div>
-                </div>
+                <video
+                  src="/sashico-brand.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
               )}
             </div>
           </div>
