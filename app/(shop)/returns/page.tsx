@@ -3,24 +3,42 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Returns & Exchanges",
-  description: "Sashico return and exchange policy — 7-day hassle-free returns.",
+  description: "Sashico refund, exchange and return policy — contact us within 72 hours of receiving your order.",
 };
 
 export const revalidate = 300;
 
 const DEFAULT = {
-  heading: "Return & Exchange Policy",
-  body: `<h2>Return Window</h2>
-<p>We accept returns within <strong>7 days</strong> of delivery for unworn, unwashed items with tags attached.</p>
+  heading: "Refund, Exchange & Return Policy",
+  body: `<p>At <strong>SASHICO</strong>, customer satisfaction is always our top priority. If you receive a product that you are not fully satisfied with, you may request a return, exchange, replacement, or refund, subject to the following conditions.</p>
 
-<h2>How to Return</h2>
-<p>Email <a href="mailto:sashicofficial2020@gmail.com">sashicofficial2020@gmail.com</a> with your order number and reason. We'll send return instructions within 24 hours.</p>
+<h2>Return &amp; Exchange Conditions</h2>
+<ul>
+  <li>You must inform us within <strong>72 hours of receiving the product</strong> to request a return or exchange.</li>
+  <li>The product must be returned in the <strong>same condition</strong> in which it was received.</li>
+  <li>Items must be <strong>unused, unworn, unaltered, and free from any damage caused by the customer</strong>.</li>
+  <li>The product must be returned with its <strong>original packaging</strong>.</li>
+  <li>A valid <strong>invoice or proof of purchase</strong> is required for any return, exchange, or refund request.</li>
+  <li>All exchanges are subject to <strong>product availability</strong>.</li>
+  <li>An order can only be <strong>exchanged once</strong>.</li>
+</ul>
 
-<h2>Refunds</h2>
-<p>Refunds are processed within 48 hours of receiving the returned item.</p>
+<h2>Delivery Charges</h2>
+<ul>
+  <li>For returns and exchanges, the <strong>original delivery charge is non-refundable</strong>.</li>
+  <li>Delivery charges may apply for exchanges and replacements.</li>
+  <li>However, if a replacement is required due to an <strong>incorrect, defective, or damaged product sent by SASHICO</strong>, we will bear the delivery cost for both collecting the product and sending the replacement.</li>
+</ul>
 
-<h2>Non-Returnable Items</h2>
-<p>Sale items are final sale and cannot be returned or exchanged.</p>`,
+<h2>Refund Policy</h2>
+<ul>
+  <li>Refunds are only applicable in cases where there is a <strong>valid and reasonable justification</strong>.</li>
+  <li>Once a refund request is approved, the refund process may take approximately <strong>7–10 working days</strong> to complete.</li>
+</ul>
+
+<h2>Need Help With a Return?</h2>
+<p>For any <strong>return, exchange, replacement, or refund-related queries</strong>, please contact us directly on <a href="https://wa.me/8801628340463" target="_blank" rel="noopener noreferrer">WhatsApp</a>.</p>
+<p>When contacting us, please provide your <strong>Invoice Number or Order Contact Number</strong> so that we can quickly verify and assist with your request.</p>`,
 };
 
 async function getContent() {

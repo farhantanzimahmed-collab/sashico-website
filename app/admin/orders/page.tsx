@@ -5,6 +5,7 @@ import { Order } from "@/lib/types";
 import { formatPrice, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/utils";
 import ExportButton from "@/components/admin/ExportButton";
 import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
+import DateRangeDelete from "@/components/admin/DateRangeDelete";
 
 export const revalidate = 0;
 
@@ -31,7 +32,10 @@ export default async function AdminOrdersPage() {
           <h1 className="font-sans text-2xl font-bold text-brand-black">Orders</h1>
           <p className="text-sm text-brand-gray-500 font-sans mt-1">{orders.length} total orders</p>
         </div>
-        <ExportButton type="orders" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <DateRangeDelete type="orders" />
+          <ExportButton type="orders" />
+        </div>
       </div>
 
       <div className="bg-white border border-brand-gray-100">

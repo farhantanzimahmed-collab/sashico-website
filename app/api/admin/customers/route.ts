@@ -10,7 +10,7 @@ export async function DELETE(req: NextRequest) {
 
   // Single delete by ID
   if (body.id) {
-    const { error } = await supabase.from("orders").delete().eq("id", body.id);
+    const { error } = await supabase.from("customers").delete().eq("id", body.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   }
@@ -23,7 +23,7 @@ export async function DELETE(req: NextRequest) {
     to.setHours(23, 59, 59, 999);
 
     const { error, count } = await supabase
-      .from("orders")
+      .from("customers")
       .delete({ count: "exact" })
       .gte("created_at", from.toISOString())
       .lte("created_at", to.toISOString());
