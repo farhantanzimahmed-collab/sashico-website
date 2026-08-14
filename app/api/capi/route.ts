@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { eventName, eventId, userData = {}, customData = {}, eventSourceUrl } = await req.json();
+    const { eventName, eventId, userData = {}, customData = {}, eventSourceUrl, fbc, fbp } = await req.json();
 
     if (!eventName) {
       return NextResponse.json({ ok: false, error: "eventName required" }, { status: 400 });
@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
         ...hashedUserData,
         client_ip_address: ip,
         client_user_agent: ua,
+        ...(fbc  ? { fbc }  : {}),
+        ...(fbp  ? { fbp }  : {}),
       },
       custom_data: customData,
     };

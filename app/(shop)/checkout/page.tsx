@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +46,8 @@ type FormData = z.infer<typeof schema>;
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { trackPurchase } = useTracking();
+  const { trackPurchase, trackBeginCheckout } = useTracking();
+  const checkoutTracked = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -76,7 +77,13 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!hydrated) return;
     if (items.length === 0 && !orderPlaced) router.push("/cart");
-  }, [hydrated, items.length, orderPlaced, router]);
+    // Fire InitiateCheckout once per session landing on this page
+    if (items.length > 0 && !checkoutTracked.current) {
+      checkoutTracked.current = true;
+      trackBeginCheckout(grandTotal, items.reduce((s, i) => s + i.quantity, 0));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
 
   if (!hydrated) return (
     <div className="pt-28 min-h-screen flex items-center justify-center">
@@ -122,7 +129,11 @@ export default function CheckoutPage() {
       }
 
       const { order } = await res.json();
-      trackPurchase(order.order_number, grandTotal, items.reduce((s, i) => s + i.quantity, 0));
+      trackPurchase(order.order_number, grandTotal, items.reduce((s, i) => s + i.quantity, 0), {
+        email: data.email,
+        phone: data.phone,
+        name: data.full_name,
+      });
       setOrderPlaced(true);
       clearCart();
       router.push(`/checkout/success?order=${order.order_number}`);

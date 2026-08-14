@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, Share2, Ruler, ChevronDown, ChevronUp, Truck, ShieldCheck } from "lucide-react";
 import { Product } from "@/lib/types";
@@ -29,7 +29,13 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
   const { addItem, openCart } = useCartStore();
   const { toggleItem, isWishlisted } = useWishlistStore();
-  const { trackAddToCart } = useTracking();
+  const { trackAddToCart, trackProductView } = useTracking();
+
+  // Fire ViewContent on mount — once per product page load
+  useEffect(() => {
+    trackProductView(product.id, product.name, price, product.category);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
   const wishlisted = isWishlisted(product.id);
 
   const price = product.discount_price ?? product.price;

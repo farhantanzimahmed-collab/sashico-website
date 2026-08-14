@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { getAttribution, getFbCookies } from "@/lib/attribution";
 
 // Fire server-side CAPI event (alongside browser pixel for deduplication)
 async function sendCAPI(
@@ -10,6 +11,7 @@ async function sendCAPI(
   userData: Record<string, string> = {}
 ) {
   try {
+    const { fbc, fbp } = getFbCookies();
     await fetch("/api/capi", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -18,6 +20,8 @@ async function sendCAPI(
         eventId,
         customData,
         userData,
+        fbc,
+        fbp,
         eventSourceUrl: typeof window !== "undefined" ? window.location.href : "",
       }),
     });
@@ -101,16 +105,30 @@ export function useTracking() {
   const trackPageView = useCallback(() => track({ type: "PageView" }), [track]);
 
   const trackProductView = useCallback(
-    (productId: string, productName: string, price: number, category: string) =>
+    (productId: string, productName: string, price: number, category: string) => {
+      const eventId = `vc_${productId}_${Date.now()}`;
       track({
         type: "ViewContent",
-        data: {
+        data: { content_ids: [productId], content_name: productName, content_category: category, value: price },
+      });
+      // Fire with eventId for deduplication
+      if (typeof window !== "undefined" && window.fbq) {
+        window.fbq("track", "ViewContent", {
           content_ids: [productId],
           content_name: productName,
           content_category: category,
           value: price,
-        },
-      }),
+          currency: "BDT",
+        }, { eventID: eventId });
+      }
+      sendCAPI("ViewContent", eventId, {
+        content_ids: [productId],
+        content_name: productName,
+        content_category: category,
+        value: price,
+        currency: "BDT",
+      });
+    },
     [track]
   );
 
