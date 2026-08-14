@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/google-sync",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/telegram/stock-report",
       "schedule": "0 1 * * *"
     },
