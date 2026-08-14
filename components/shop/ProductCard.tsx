@@ -106,8 +106,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <button
           onClick={() => toggleItem(product.id)}
           className={cn(
-            "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg z-10",
-            hovered ? "opacity-100" : "opacity-0",
+            "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-lg z-10 transition-opacity duration-200",
+            hovered ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
             wishlisted ? "text-black" : "text-brand-gray-300 hover:text-black"
           )}
           aria-label="Wishlist"
@@ -121,8 +121,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             onClick={handleQuickAdd}
             disabled={addingToCart}
             className={cn(
-              "absolute bottom-0 inset-x-0 bg-black text-white py-3.5 label-xs flex items-center justify-center gap-2 z-10",
-              hovered ? "opacity-100" : "opacity-0"
+              "absolute bottom-0 inset-x-0 bg-black text-white py-3.5 label-xs flex items-center justify-center gap-2 z-10 transition-opacity duration-200",
+              hovered ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             )}
           >
             <Plus className="h-3 w-3" />

@@ -28,7 +28,7 @@ export default async function ShopLayout({
   return (
     <>
       <Navbar settings={settings} />
-      <main className="min-h-screen pb-14 lg:pb-0">{children}</main>
+      <main className="min-h-screen pb-safe-nav lg:pb-0">{children}</main>
       <Footer settings={settings} />
       <ClientWidgets />
     </>

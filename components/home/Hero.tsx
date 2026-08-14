@@ -21,7 +21,9 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
   const words = rawTitle.split(" ");
 
   return (
-    <section className="relative h-screen min-h-[600px] w-full overflow-hidden bg-black">
+    {/* h-[100dvh] uses the dynamic viewport height so the hero fills exactly the
+        visible area on iOS (excludes the browser chrome / address bar) */}
+    <section className="relative h-screen min-h-[600px] w-full overflow-hidden bg-black [height:100dvh]">
 
       {/* ── Background ─────────────────────────────────────── */}
       {heroMode === "video" && heroVideo ? (

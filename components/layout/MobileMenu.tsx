@@ -30,7 +30,7 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
 
       <div
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-50 w-80 bg-white transition-transform duration-400 ease-in-out lg:hidden flex flex-col",
+          "fixed left-0 top-0 bottom-0 z-50 w-80 bg-white transition-transform duration-[400ms] ease-in-out lg:hidden flex flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

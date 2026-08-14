@@ -95,7 +95,7 @@ export default function ChatWidget() {
     <>
       {/* Chat panel */}
       <div className={cn(
-        `fixed ${chatBottom} right-3 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[380px] bg-white border border-brand-gray-200 shadow-xl flex flex-col origin-bottom-right`,
+        `fixed ${chatBottom} right-3 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[380px] bg-white border border-brand-gray-200 shadow-xl flex flex-col origin-bottom-right transition-all duration-200`,
         open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
       )}
         style={{ height: "min(480px, calc(100vh - 8rem))" }}
