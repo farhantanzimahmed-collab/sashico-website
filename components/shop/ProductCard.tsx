@@ -53,11 +53,21 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     setTimeout(() => setAddingToCart(false), 600);
   }
 
+  // Only activate hover state for real mouse pointers.
+  // On touch devices, pointerType === "touch" — we deliberately ignore it so
+  // the invisible overlay buttons never intercept mobile taps.
+  function handlePointerEnter(e: React.PointerEvent) {
+    if (e.pointerType === "mouse") setHovered(true);
+  }
+  function handlePointerLeave(e: React.PointerEvent) {
+    if (e.pointerType === "mouse") setHovered(false);
+  }
+
   return (
     <article
       className="group"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
     >
       {/* ── Image ─────────────────────────────────── */}
       <div className="relative overflow-hidden bg-brand-gray-100 aspect-[3/4] rounded-lg">
@@ -93,7 +103,6 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none z-10">
-
           {hasDiscount && (
             <span className="label-xs bg-red-500 text-white px-2.5 py-1 rounded font-bold">−{discount}%</span>
           )}
@@ -102,7 +111,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           )}
         </div>
 
-        {/* Wishlist */}
+        {/* Wishlist — mouse-hover only; always pointer-events-none on touch */}
         <button
           onClick={() => toggleItem(product.id)}
           className={cn(
@@ -115,7 +124,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <Heart className={cn("h-3.5 w-3.5", wishlisted && "fill-current")} />
         </button>
 
-        {/* Quick Add */}
+        {/* Quick Add — mouse-hover only; always pointer-events-none on touch */}
         {inStock && (
           <button
             onClick={handleQuickAdd}

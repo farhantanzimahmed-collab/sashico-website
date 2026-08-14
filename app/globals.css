@@ -16,6 +16,11 @@
     margin: 0;
   }
 
+  /* Eliminate 300ms tap delay on all interactive elements for all mobile browsers */
+  a, button, [role="button"], input, select, textarea, label {
+    touch-action: manipulation;
+  }
+
   /* overflow-x: clip on html avoids creating a scroll container (unlike hidden),
      so it does NOT break position:fixed touch events on iOS Safari */
   html {

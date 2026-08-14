@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
@@ -6,6 +6,13 @@ import TrackingScripts from "@/components/tracking/TrackingScripts";
 import StoreHydration from "@/components/StoreHydration";
 import PromoPopup from "@/components/ui/PromoPopup";
 import { MarketingSettings } from "@/lib/types";
+
+// Explicit viewport export — ensures correct mobile rendering and eliminates
+// the 300ms tap delay on Android browsers older than Chrome 55
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: {
