@@ -27,7 +27,7 @@ const DEFAULT_CONTENT = {
     {
       name: "Products",
       items: [
-        { q: "How is the sizing?", a: "Our garments have a relaxed, contemporary fit. Check our Size Guide for measurements. When between sizes, size up." },
+        { q: "How is the sizing?", a: "Our garments have a relaxed, contemporary fit. Check our Size Guide for measurements. If you are between sizes, we recommend sizing up." },
         { q: "Are your embroideries hand-stitched?", a: "Yes. All embroidery is crafted by skilled Bangladeshi artisans using a combination of hand and machine techniques." },
         { q: "How should I care for my garment?", a: "Machine wash cold (30°C max) inside out. Do not bleach. Iron on low heat away from embroidery." },
       ],
@@ -35,8 +35,8 @@ const DEFAULT_CONTENT = {
     {
       name: "Returns & Exchanges",
       items: [
-        { q: "What is your return policy?", a: "We accept returns within 7 days of delivery for unworn, unwashed items with tags intact." },
-        { q: "How do I initiate a return?", a: "Email sashicofficial2020@gmail.com with your order number and reason. We'll send return instructions within 24 hours." },
+        { q: "What is your return policy?", a: "You must contact us within 72 hours of receiving your product to request a return or exchange. Items must be unused, unworn, and returned in their original packaging with proof of purchase." },
+        { q: "How do I initiate a return?", a: "Contact us directly on WhatsApp with your Invoice Number or Order Contact Number. We'll verify your request and guide you through the next steps as quickly as possible." },
       ],
     },
   ],

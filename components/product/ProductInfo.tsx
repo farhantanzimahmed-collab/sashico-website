@@ -276,7 +276,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </div>
         <div className="flex items-center gap-3 border border-black/8 rounded-lg px-4 py-3">
           <ShieldCheck className="h-4 w-4 text-brand-gray-400 flex-shrink-0" />
-          <p className="text-xs text-brand-gray-500 leading-snug">7-day return policy</p>
+          <p className="text-xs text-brand-gray-500 leading-snug">72-hour return policy</p>
         </div>
       </div>
 
@@ -339,10 +339,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             toggle: () => setShippingOpen(!shippingOpen),
             content: (
               <ul className="space-y-2 text-sm text-brand-gray-600">
-                <li>Standard delivery: 3-5 days (Dhaka)</li>
-                <li>Outside Dhaka: 5-7 business days</li>
+                <li>Standard delivery: 2–4 business days (Dhaka)</li>
+                <li>Outside Dhaka: 4–6 business days</li>
                 <li>Free shipping on orders above ৳2,000</li>
-                <li>Returns accepted within 7 days</li>
+                <li>Contact us within 72 hours of delivery to initiate a return</li>
               </ul>
             ),
           },
