@@ -37,14 +37,27 @@ async function getProducts(searchParams: SearchParams): Promise<Product[]> {
     .eq("is_active", true);
 
   if (searchParams.category && searchParams.category !== "all") {
-    // Use ilike on the first significant word for robust matching
-    // e.g. "cuban shirts" → first word "cuban", "t-shirts" → "t-shirt", "bags" → "bag", "winter" → "winter"
-    const cat = searchParams.category.toLowerCase();
-    const firstWord = cat.split(/[\s-]/)[0]; // "cuban", "t", "bags", "winter"
-    const catSpace = cat.replace(/-/g, " "); // "cuban shirts", "t shirts"
-    query = query.or(
-      `category.ilike.%${catSpace}%,category.ilike.%${cat}%,category.ilike.%${firstWord}%`
-    );
+    const cat = searchParams.category.toLowerCase().trim();
+
+    // Explicit mapping from UI filter slug → exact DB category values.
+    // "winter" is a UI grouping that covers several DB categories.
+    // "cuban shirts" maps to "shirts" (product code prefix SS-S-).
+    const CATEGORY_MAP: Record<string, string[]> = {
+      "t-shirts":     ["t-shirts"],
+      "cuban shirts": ["shirts"],
+      "cuban-shirts": ["shirts"],
+      "winter":       ["sweatshirts", "hoodies", "jackets", "winter"],
+      "bags":         ["bags", "accessories"],
+    };
+
+    const dbCats = CATEGORY_MAP[cat];
+    if (dbCats) {
+      // Exact-match OR across all mapped DB categories
+      query = query.or(dbCats.map((c) => `category.eq.${c}`).join(","));
+    } else {
+      // Fallback for unknown slugs — substring match on full slug (no single-char splits)
+      query = query.ilike("category", `%${cat}%`);
+    }
   }
 
   if (searchParams.filter === "new") query = query.eq("is_new_arrival", true);
