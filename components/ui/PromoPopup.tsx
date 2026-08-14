@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { X } from "lucide-react";
 
 // Show once per session (disappears after closing, comes back on new tab/visit)
@@ -48,15 +49,17 @@ export default function PromoPopup() {
           <X className="h-4 w-4 text-black" />
         </button>
 
-        {/* Promo image */}
-        <Image
-          src="/promo-70-off.png"
-          alt="Sashico — Up to 70% off all items"
-          width={2160}
-          height={2160}
-          className="w-full h-auto block"
-          priority
-        />
+        {/* Promo image — click goes to shop */}
+        <Link href="/shop" onClick={close}>
+          <Image
+            src="/promo-70-off.png"
+            alt="Sashico — Up to 70% off all items"
+            width={2160}
+            height={2160}
+            className="w-full h-auto block cursor-pointer"
+            priority
+          />
+        </Link>
 
         {/* Skip text below image */}
         <button
