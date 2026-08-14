@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/google-sync",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/telegram/stock-report",
