@@ -57,7 +57,6 @@ export default function PromoPopup() {
             width={2160}
             height={2160}
             className="w-full h-auto block cursor-pointer"
-            priority
           />
         </Link>
 

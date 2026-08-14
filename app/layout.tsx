@@ -89,8 +89,12 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        {/* Critical-path preconnects — reduce connection overhead on mobile */}
         <link rel="preconnect" href="https://kkvybxtgpczbomjesfxs.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://kkvybxtgpczbomjesfxs.supabase.co" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <meta name="theme-color" content="#000000" />
       </head>
       <body>
         <PromoPopup />

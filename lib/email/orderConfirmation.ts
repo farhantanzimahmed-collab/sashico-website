@@ -109,7 +109,9 @@ export function buildOrderConfirmationHtml(order: Order, siteName = "Sashico"): 
 
 export async function sendOrderConfirmationEmail(order: Order, siteName = "Sashico"): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.FROM_EMAIL || "Sashico Orders <onboarding@resend.dev>";
+  // FROM_EMAIL should be a bare address e.g. "orders@sashico.com"
+  // The display name is added below as "${siteName} <address>"
+  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
 
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY not set — skipping order confirmation email");
@@ -126,7 +128,7 @@ export async function sendOrderConfirmationEmail(order: Order, siteName = "Sashi
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${siteName} <${fromEmail}>`,
+        from: `${siteName} Orders <${fromEmail}>`,
         to: [order.customer_email],
         subject: `Order Confirmed: ${order.order_number}`,
         html,

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createAuthClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
+  // Auth guard
+  const auth = await createAuthClient();
+  const { data: { user } } = await auth.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const { filename, folder = "settings" } = await req.json();
     if (!filename) return NextResponse.json({ error: "filename required" }, { status: 400 });

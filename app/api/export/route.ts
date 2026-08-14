@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createAuthClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
 
 function getAdmin() {
@@ -11,6 +12,11 @@ function getAdmin() {
 }
 
 export async function GET(req: NextRequest) {
+  // Auth guard — only logged-in admin users may export data
+  const authSupabase = await createAuthClient();
+  const { data: { user } } = await authSupabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const type = req.nextUrl.searchParams.get("type") || "orders";
   const supabase = getAdmin();
 

@@ -50,6 +50,8 @@ interface TrackingEvent {
     | "Lead"
     | "Contact"
     | "CompleteRegistration";
+  /** Pass eventID to fire Meta Pixel with deduplication support (server-side CAPI uses the same ID). */
+  eventId?: string;
   data?: {
     content_ids?: string[];
     content_name?: string;
@@ -62,15 +64,19 @@ interface TrackingEvent {
 }
 
 export function useTracking() {
-  const track = useCallback(({ type, data = {} }: TrackingEvent) => {
+  const track = useCallback(({ type, data = {}, eventId }: TrackingEvent) => {
     const eventData = {
       currency: "BDT",
       ...data,
     };
 
-    // Meta Pixel
+    // Meta Pixel — fire once, with eventId when provided for CAPI deduplication
     if (typeof window !== "undefined" && window.fbq) {
-      window.fbq("track", type, eventData);
+      if (eventId) {
+        window.fbq("track", type, eventData, { eventID: eventId });
+      } else {
+        window.fbq("track", type, eventData);
+      }
     }
 
     // Google Analytics 4
@@ -107,20 +113,12 @@ export function useTracking() {
   const trackProductView = useCallback(
     (productId: string, productName: string, price: number, category: string) => {
       const eventId = `vc_${productId}_${Date.now()}`;
+      // Pass eventId into track() so Meta Pixel fires exactly once with dedup ID
       track({
         type: "ViewContent",
+        eventId,
         data: { content_ids: [productId], content_name: productName, content_category: category, value: price },
       });
-      // Fire with eventId for deduplication
-      if (typeof window !== "undefined" && window.fbq) {
-        window.fbq("track", "ViewContent", {
-          content_ids: [productId],
-          content_name: productName,
-          content_category: category,
-          value: price,
-          currency: "BDT",
-        }, { eventID: eventId });
-      }
       sendCAPI("ViewContent", eventId, {
         content_ids: [productId],
         content_name: productName,
@@ -135,8 +133,10 @@ export function useTracking() {
   const trackAddToCart = useCallback(
     (productId: string, productName: string, price: number, quantity: number) => {
       const eventId = `atc_${productId}_${Date.now()}`;
+      // Pass eventId into track() so Meta Pixel fires exactly once with dedup ID
       track({
         type: "AddToCart",
+        eventId,
         data: {
           content_ids: [productId],
           content_name: productName,
@@ -144,16 +144,6 @@ export function useTracking() {
           num_items: quantity,
         },
       });
-      // Also fire server-side CAPI (deduped via eventId)
-      if (typeof window !== "undefined" && window.fbq) {
-        window.fbq("track", "AddToCart", {
-          content_ids: [productId],
-          content_name: productName,
-          value: price * quantity,
-          currency: "BDT",
-          num_items: quantity,
-        }, { eventID: eventId });
-      }
       sendCAPI("AddToCart", eventId, {
         content_ids: [productId],
         content_name: productName,

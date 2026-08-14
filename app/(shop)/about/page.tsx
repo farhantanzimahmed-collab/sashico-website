@@ -84,6 +84,7 @@ export default async function AboutPage() {
                   muted
                   loop
                   playsInline
+                  preload="none"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )}

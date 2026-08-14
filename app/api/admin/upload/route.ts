@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createAuthClient } from "@/lib/supabase/server";
 
 function getServiceClient() {
   return createClient(
@@ -9,7 +10,14 @@ function getServiceClient() {
   );
 }
 
+async function requireAuth() {
+  const auth = await createAuthClient();
+  const { data: { user } } = await auth.auth.getUser();
+  return user;
+}
+
 export async function GET() {
+  if (!await requireAuth()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const admin = getServiceClient();
   const { data: buckets, error } = await admin.storage.listBuckets();
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
@@ -38,6 +46,8 @@ async function ensureBucketPublic() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!await requireAuth()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   // Ensure bucket is public before every upload
   try { await ensureBucketPublic(); } catch { /* continue */ }
 

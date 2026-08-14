@@ -62,7 +62,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
             <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/15 to-black/75" />
           </div>
 
-          {/* Tablet: 2 panels */}
+          {/* Tablet: 2 panels — no priority; hidden on mobile so must not preload there */}
           <div className="absolute inset-0 hidden sm:flex lg:hidden">
             {panels.slice(0, 2).map((img, i) => (
               <div key={i} className="relative flex-1 overflow-hidden">
@@ -70,7 +70,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
                   <Image
                     src={getImageUrl(img)}
                     alt={`Collection ${i + 1}`}
-                    fill priority sizes="50vw"
+                    fill sizes="50vw"
                     className="object-cover scale-100 hover:scale-[1.03] transition-transform duration-700"
                   />
                 ) : (
@@ -81,7 +81,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
             ))}
           </div>
 
-          {/* Desktop: 4 panels */}
+          {/* Desktop: 4 panels — no priority; hidden on mobile so must not preload there */}
           <div className="absolute inset-0 hidden lg:flex">
             {panels.map((img, i) => (
               <div key={i} className="relative flex-1 overflow-hidden group">
@@ -89,7 +89,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
                   <Image
                     src={getImageUrl(img)}
                     alt={`Collection ${i + 1}`}
-                    fill priority sizes="25vw"
+                    fill sizes="25vw"
                     className="object-cover scale-100 group-hover:scale-[1.03] transition-transform duration-700"
                   />
                 ) : (

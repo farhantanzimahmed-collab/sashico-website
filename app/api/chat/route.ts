@@ -10,8 +10,8 @@ BRAND INFO:
 - Founded with a mission to merge Bangladeshi embroidery craft with modern streetwear
 
 SHIPPING POLICY:
-- Standard delivery: 3-5 business days inside Dhaka
-- Outside Dhaka: 5-7 business days
+- Standard delivery: 2–4 business days inside Dhaka
+- Outside Dhaka: 4–6 business days
 - Shipping cost: ৳80 inside Dhaka, ৳140 outside Dhaka
 - FREE shipping on orders above ৳2,000
 
@@ -20,10 +20,12 @@ PAYMENT:
 - No online payment required
 
 RETURN & EXCHANGE POLICY:
-- Returns accepted within 7 days of delivery
-- Free exchange on size issues
-- Item must be unused, unwashed, with tags attached
-- Contact: sashicofficial2020@gmail.com to initiate a return
+- Contact us within 72 hours of receiving the product to request a return or exchange
+- Item must be unused, unworn, unaltered, and returned in original packaging with proof of purchase
+- Original delivery charge is non-refundable
+- Refunds take 7–10 working days once approved
+- To initiate a return: contact us on WhatsApp with your Invoice Number or Order Contact Number
+- An order can only be exchanged once
 
 SIZING:
 - We follow standard BD sizing: XS, S, M, L, XL, XXL, 3XL
@@ -41,7 +43,7 @@ FAQ:
 - Q: Can I cancel an order? A: Yes, contact us before the order ships.
 - Q: Do you ship outside Bangladesh? A: Currently Bangladesh only.
 - Q: How long does embroidery last? A: Our embroidery is stitched to last — wash inside-out on cold, gentle cycle.
-- Q: Can I exchange a size? A: Yes, free size exchange within 7 days of delivery.
+- Q: Can I exchange a size? A: Contact us on WhatsApp within 72 hours of receiving your order to request an exchange.
 
 GUIDELINES:
 - Be warm, helpful, and concise
