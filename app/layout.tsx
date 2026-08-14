@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       "Premium embroidery streetwear crafted in Bangladesh. Authentic hand-stitched designs for the modern streetwear enthusiast.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "https://sashico.vercel.app/og-image.jpg",
         width: 2048,
         height: 899,
         alt: "Sashico - Premium Embroidery Streetwear",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sashico | Premium Embroidery Streetwear",
     description: "Premium embroidery streetwear crafted in Bangladesh.",
-    images: ["/og-image.jpg"],
+    images: ["https://sashico.vercel.app/og-image.jpg"],
   },
   robots: {
     index: true,
