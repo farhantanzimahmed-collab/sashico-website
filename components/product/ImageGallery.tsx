@@ -47,6 +47,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
                 alt={`${productName} view ${idx + 1}`}
                 fill
                 sizes="80px"
+                loading="lazy"
                 className="object-contain"
               />
             </button>

@@ -82,11 +82,16 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        {/* Preload navbar logo — it's the first render-visible branded element */}
+        <link rel="preload" href="/sashico-logo.png" as="image" type="image/png" />
         {/* Critical-path preconnects — reduce connection overhead on mobile */}
         <link rel="preconnect" href="https://kkvybxtgpczbomjesfxs.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://kkvybxtgpczbomjesfxs.supabase.co" />
+        {/* Third-party analytics — warm connections before scripts fire */}
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
+        <link rel="dns-prefetch" href="https://sc-static.net" />
         <meta name="theme-color" content="#000000" />
       </head>
       <body>

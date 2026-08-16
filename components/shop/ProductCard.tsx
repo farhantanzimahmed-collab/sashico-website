@@ -74,23 +74,24 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <Link href={`/shop/${product.slug}`} className="block absolute inset-0">
           {mainImage ? (
             <>
+              {/* Main image — opacity transition is GPU-composited, avoids layout/paint work */}
               <Image
                 src={getImageUrl(mainImage)}
                 alt={product.name}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 priority={priority}
-                className="object-cover"
-                style={{ display: hovered && hoverImage ? "none" : "block" }}
+                className={`object-cover transition-opacity duration-300 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
               />
+              {/* Hover image — lazy loaded, GPU-composited opacity transition */}
               {hoverImage && (
                 <Image
                   src={getImageUrl(hoverImage)}
                   alt={product.name}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover"
-                  style={{ display: hovered ? "block" : "none" }}
+                  loading="lazy"
+                  className={`object-cover transition-opacity duration-300 ${hovered ? "opacity-100" : "opacity-0"}`}
                 />
               )}
             </>

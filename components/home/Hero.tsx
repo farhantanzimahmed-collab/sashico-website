@@ -67,7 +67,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
             <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/15 to-black/75" />
           </div>
 
-          {/* Tablet: 2 panels — no priority; hidden on mobile so must not preload there */}
+          {/* Tablet: 2 panels — first panel is LCP on tablet, must have priority */}
           <div className="absolute inset-0 hidden sm:flex lg:hidden">
             {panels.slice(0, 2).map((img, i) => (
               <div key={i} className="relative flex-1 overflow-hidden">
@@ -76,6 +76,8 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
                     src={getImageUrl(img)}
                     alt={`Collection ${i + 1}`}
                     fill sizes="50vw"
+                    priority={i === 0}
+                    fetchPriority={i === 0 ? "high" : "auto"}
                     className="object-cover scale-100 hover:scale-[1.03] transition-transform duration-700"
                   />
                 ) : (
@@ -86,7 +88,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
             ))}
           </div>
 
-          {/* Desktop: 4 panels — no priority; hidden on mobile so must not preload there */}
+          {/* Desktop: 4 panels — first panel is LCP on desktop, must have priority */}
           <div className="absolute inset-0 hidden lg:flex">
             {panels.map((img, i) => (
               <div key={i} className="relative flex-1 overflow-hidden group">
@@ -95,6 +97,8 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
                     src={getImageUrl(img)}
                     alt={`Collection ${i + 1}`}
                     fill sizes="25vw"
+                    priority={i === 0}
+                    fetchPriority={i === 0 ? "high" : "auto"}
                     className="object-cover scale-100 group-hover:scale-[1.03] transition-transform duration-700"
                   />
                 ) : (
