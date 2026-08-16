@@ -93,7 +93,11 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
+    // Sort files by filename numerically so 1.png → 2.jpeg → 10.png
+    // regardless of what order the OS/browser returns them from the file picker.
+    const files = Array.from(e.target.files || []).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
+    );
     if (files.length === 0) return;
 
     setUploading(true);
