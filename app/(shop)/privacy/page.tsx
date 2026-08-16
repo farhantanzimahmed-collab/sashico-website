@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Sashico privacy policy — how we collect, use, and protect your information.",
 };
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const DEFAULT = {
   heading: "Privacy Policy",

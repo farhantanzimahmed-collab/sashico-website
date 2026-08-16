@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Sashico terms of service — please read before using our website.",
 };
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const DEFAULT = {
   heading: "Terms of Service",

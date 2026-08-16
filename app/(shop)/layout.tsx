@@ -1,29 +1,15 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ClientWidgets from "@/components/layout/ClientWidgets";
-import { createClient } from "@/lib/supabase/server";
-import { SiteSettings } from "@/lib/types";
-
-async function getSiteSettings(): Promise<SiteSettings | null> {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("site_settings")
-      .select("*")
-      .eq("id", 1)
-      .single();
-    return data;
-  } catch {
-    return null;
-  }
-}
+import { getCachedSiteSettings } from "@/lib/cache";
 
 export default async function ShopLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getSiteSettings();
+  // Cached 5 min — all concurrent visitors share one Supabase call
+  const settings = await getCachedSiteSettings();
 
   return (
     <>

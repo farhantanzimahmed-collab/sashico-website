@@ -1,64 +1,20 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import ProductSection from "@/components/home/ProductSection";
 import Reviews from "@/components/home/Reviews";
 import Newsletter from "@/components/home/Newsletter";
-import { Product, Review, SiteSettings } from "@/lib/types";
-
-const PRODUCT_COLS = "id,name,slug,price,discount_price,category,category_id,images,sizes,stock_quantity,is_featured,is_new_arrival,is_best_seller,is_active,meta_title,meta_description,description,created_at,updated_at";
+import { getCachedHomeProducts } from "@/lib/cache";
+import { SiteSettings } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Sashico | Premium Embroidery Streetwear",
 };
 
-export const revalidate = 60;
-
-async function getData() {
-  const supabase = await createClient();
-
-  const [settingsRes, newArrivalsRes, featuredRes, bestSellersRes, reviewsRes] =
-    await Promise.all([
-      supabase.from("site_settings").select("*").eq("id", 1).single(),
-      supabase
-        .from("products")
-        .select(PRODUCT_COLS)
-        .eq("is_new_arrival", true)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(12),
-      supabase
-        .from("products")
-        .select(PRODUCT_COLS)
-        .eq("is_featured", true)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(12),
-      supabase
-        .from("products")
-        .select(PRODUCT_COLS)
-        .eq("is_best_seller", true)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(12),
-      supabase
-        .from("reviews")
-        .select("id,product_id,customer_name,rating,comment,is_approved,created_at")
-        .eq("is_approved", true)
-        .order("created_at", { ascending: false })
-        .limit(8),
-    ]);
-
-  return {
-    settings: settingsRes.data as SiteSettings | null,
-    newArrivals: (newArrivalsRes.data as Product[]) || [],
-    featured: (featuredRes.data as Product[]) || [],
-    bestSellers: (bestSellersRes.data as Product[]) || [],
-    reviews: (reviewsRes.data as Review[]) || [],
-  };
-}
+// revalidate is now controlled inside getCachedHomeProducts (180s)
+// This page itself can be long-lived since data comes from cache
+export const revalidate = 180;
 
 const DEFAULT_SETTINGS: SiteSettings = {
   id: 1,
@@ -90,10 +46,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 export default async function HomePage() {
-  const { settings, newArrivals, featured, bestSellers, reviews } = await getData();
+  // Single cached call — all concurrent visitors share this result
+  const { settings, newArrivals, featured, bestSellers, reviews } =
+    await getCachedHomeProducts();
+
   const siteSettings = settings || DEFAULT_SETTINGS;
 
-  // Use admin-set hero images if available, otherwise fall back to product images
   const settingsHeroImages = [
     siteSettings.hero_image_1 ?? null,
     siteSettings.hero_image_2 ?? null,

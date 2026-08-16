@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Sashico refund, exchange and return policy — contact us within 72 hours of receiving your order.",
 };
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const DEFAULT = {
   heading: "Refund, Exchange & Return Policy",

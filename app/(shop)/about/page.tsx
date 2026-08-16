@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Learn about Sashico — the Bangladeshi streetwear brand redefining embroidery-based fashion.",
 };
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const DEFAULT_CONTENT = {
   heading: "Embroidery Is Our Language",

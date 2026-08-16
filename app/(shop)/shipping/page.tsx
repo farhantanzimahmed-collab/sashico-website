@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Learn about Sashico shipping times, rates, and delivery details.",
 };
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const DEFAULT = {
   heading: "Shipping Policy",

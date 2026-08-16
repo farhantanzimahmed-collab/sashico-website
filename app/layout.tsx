@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-import { createClient } from "@/lib/supabase/server";
 import TrackingScripts from "@/components/tracking/TrackingScripts";
 import StoreHydration from "@/components/StoreHydration";
 import PromoPopup from "@/components/ui/PromoPopup";
-import { MarketingSettings } from "@/lib/types";
+import { getCachedMarketingSettings } from "@/lib/cache";
 
 // Explicit viewport export — ensures correct mobile rendering and eliminates
 // the 300ms tap delay on Android browsers older than Chrome 55
@@ -71,26 +70,13 @@ export const metadata: Metadata = {
   },
 };
 
-async function getMarketingSettings(): Promise<MarketingSettings | null> {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("marketing_settings")
-      .select("*")
-      .eq("id", 1)
-      .single();
-    return data;
-  } catch {
-    return null;
-  }
-}
-
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const marketingSettings = await getMarketingSettings();
+  // Cached 10 min — concurrent visitors share one result, not one DB call each
+  const marketingSettings = await getCachedMarketingSettings();
 
   return (
     <html lang="en" suppressHydrationWarning>

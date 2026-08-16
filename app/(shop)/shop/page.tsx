@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Browse all Sashico premium embroidery streetwear. Filter by category, size, and price.",
 };
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 const CATEGORIES = ["T-Shirts", "Cuban Shirts", "Winter", "Bags"];
 const SIZES = ["S", "M", "L", "XL", "FREE SIZE"];
