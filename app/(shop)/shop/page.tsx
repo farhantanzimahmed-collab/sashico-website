@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import ProductCard from "@/components/shop/ProductCard";
 import ShopFilters from "@/components/shop/ShopFilters";
+import MobileFilterBar from "@/components/shop/MobileFilterBar";
 import { Product } from "@/lib/types";
 import { SlidersHorizontal } from "lucide-react";
 
@@ -112,33 +113,64 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const activeCategory = params.category || "all";
   const activeSort = params.sort || "newest";
 
+  const eyebrow = params.filter
+    ? params.filter.charAt(0).toUpperCase() + params.filter.slice(1)
+    : params.search
+    ? `Search: "${params.search}"`
+    : "All Products";
+
+  const heading = params.search ? `"${params.search}"` : "Shop";
+
   return (
     <div className="pt-28">
-      {/* Page Header */}
-      <div className="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8 py-12 border-b border-brand-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      {/* ── Desktop Page Header (hidden on mobile) ─────────────── */}
+      <div className="hidden lg:block mx-auto max-w-8xl px-6 lg:px-8 py-12 border-b border-brand-gray-100">
+        <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-2xs uppercase tracking-widest text-brand-gray-400 font-sans mb-2">
-              {params.filter
-                ? params.filter.charAt(0).toUpperCase() + params.filter.slice(1)
-                : params.search
-                ? `Search: "${params.search}"`
-                : "All Products"}
+              {eyebrow}
             </p>
             <h1 className="font-serif text-display-md text-brand-black">
-              {params.search ? `Results for "${params.search}"` : "Shop"}
+              {heading}
             </h1>
           </div>
-          <p className="text-sm text-brand-gray-500 font-sans">
+          <p className="text-sm text-brand-gray-500 font-sans pb-2">
             {products.length} product{products.length !== 1 ? "s" : ""}
           </p>
         </div>
       </div>
 
-      <div className="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8 py-10">
+      {/* ── Mobile: compact header + filter bar ────────────────── */}
+      {/* Products are visible within the first screen — no large header/sidebar pushing them down */}
+      <div className="lg:hidden mx-auto max-w-8xl px-4 pt-4 pb-3 border-b border-brand-gray-100">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="font-serif text-2xl text-brand-black leading-none">
+            {heading}
+          </h1>
+        </div>
+        <Suspense fallback={
+          <div className="flex gap-2 overflow-hidden">
+            {["All", ...CATEGORIES].map((c) => (
+              <div key={c} className="flex-shrink-0 h-8 w-20 bg-brand-gray-100 animate-pulse" />
+            ))}
+          </div>
+        }>
+          <MobileFilterBar
+            categories={CATEGORIES}
+            sizes={SIZES}
+            activeCategory={activeCategory}
+            activeSort={activeSort}
+            activeSize={params.size}
+            productCount={products.length}
+          />
+        </Suspense>
+      </div>
+
+      {/* ── Main content area ───────────────────────────────────── */}
+      <div className="mx-auto max-w-8xl px-4 sm:px-6 lg:px-8 py-4 lg:py-10">
         <div className="flex flex-col lg:flex-row gap-10">
-          {/* Filters Sidebar */}
-          <Suspense fallback={<div className="w-56 flex-shrink-0" />}>
+          {/* Filters Sidebar — desktop only (hidden on mobile via ShopFilters) */}
+          <Suspense fallback={<div className="hidden lg:block w-56 flex-shrink-0" />}>
             <ShopFilters
               categories={CATEGORIES}
               sizes={SIZES}

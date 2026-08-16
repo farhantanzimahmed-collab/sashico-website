@@ -39,7 +39,7 @@ export default function ShopFilters({
   const hasFilters = activeCategory !== "all" || activeSort !== "newest" || activeSize;
 
   return (
-    <aside className="w-full lg:w-56 flex-shrink-0 space-y-8">
+    <aside className="hidden lg:block w-56 flex-shrink-0 space-y-8">
       {/* Clear Filters */}
       {hasFilters && (
         <button
