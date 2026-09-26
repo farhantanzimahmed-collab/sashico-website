@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import TrackingScripts from "@/components/tracking/TrackingScripts";
+import RouteChangeTracker from "@/components/tracking/RouteChangeTracker";
 import StoreHydration from "@/components/StoreHydration";
 import PromoPopup from "@/components/ui/PromoPopup";
 import { getCachedMarketingSettings } from "@/lib/cache";
@@ -99,6 +100,7 @@ export default async function RootLayout({
         {children}
         <StoreHydration />
         <TrackingScripts settings={marketingSettings} />
+        <RouteChangeTracker />
         <Toaster
           position="bottom-right"
           toastOptions={{

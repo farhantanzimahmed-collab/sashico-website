@@ -158,7 +158,9 @@ export function useTracking() {
   const trackBeginCheckout = useCallback(
     (value: number, numItems: number) => {
       const eventId = `checkout_${Date.now()}`;
-      track({ type: "InitiateCheckout", data: { value, num_items: numItems } });
+      // Pass eventId into track() so the browser pixel event carries the same
+      // ID as the CAPI event below — required for Meta to dedupe the two.
+      track({ type: "InitiateCheckout", eventId, data: { value, num_items: numItems } });
       sendCAPI("InitiateCheckout", eventId, { value, currency: "BDT", num_items: numItems });
     },
     [track]
@@ -166,20 +168,17 @@ export function useTracking() {
 
   const trackPurchase = useCallback(
     (orderId: string, value: number, numItems: number, userData?: { email?: string; phone?: string; name?: string }) => {
+      // Stable eventId (keyed to orderId, not Date.now()) so calling this twice
+      // for the same order — e.g. a defensive re-render — still dedupes at Meta
+      // instead of registering as two Purchases.
       const eventId = `purchase_${orderId}`;
+      // Single fbq call, carrying eventId — fires exactly once per invocation,
+      // deduped against the matching CAPI event_id sent below.
       track({
         type: "Purchase",
+        eventId,
         data: { order_id: orderId, value, num_items: numItems },
       });
-      // Fire pixel with eventId for deduplication
-      if (typeof window !== "undefined" && window.fbq) {
-        window.fbq("track", "Purchase", {
-          value,
-          currency: "BDT",
-          num_items: numItems,
-          order_id: orderId,
-        }, { eventID: eventId });
-      }
       sendCAPI("Purchase", eventId, {
         value,
         currency: "BDT",

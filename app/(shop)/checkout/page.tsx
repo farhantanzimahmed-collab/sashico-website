@@ -46,7 +46,7 @@ type FormData = z.infer<typeof schema>;
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { trackPurchase, trackBeginCheckout } = useTracking();
+  const { trackBeginCheckout } = useTracking();
   const checkoutTracked = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -129,11 +129,25 @@ export default function CheckoutPage() {
       }
 
       const { order } = await res.json();
-      trackPurchase(order.order_number, grandTotal, items.reduce((s, i) => s + i.quantity, 0), {
-        email: data.email,
-        phone: data.phone,
-        name: data.full_name,
-      });
+      // Hand off Purchase data to the success page rather than firing here —
+      // this is the only point after the redirect that reliably renders once
+      // per order, so it's the safe place to fire a single Purchase event.
+      try {
+        sessionStorage.setItem(
+          "sashico_pending_purchase",
+          JSON.stringify({
+            orderId: order.order_number,
+            value: grandTotal,
+            numItems: items.reduce((s, i) => s + i.quantity, 0),
+            email: data.email,
+            phone: data.phone,
+            name: data.full_name,
+          })
+        );
+      } catch {
+        // sessionStorage unavailable (private browsing etc.) — success page
+        // will simply have nothing to fire, no crash.
+      }
       setOrderPlaced(true);
       clearCart();
       router.push(`/checkout/success?order=${order.order_number}`);

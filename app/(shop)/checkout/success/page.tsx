@@ -1,14 +1,48 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { CheckCheck, Package, MapPin, Clock, Phone } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useTracking } from "@/hooks/useTracking";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("order") || "SCO-XXXXXX";
+  const { trackPurchase } = useTracking();
+
+  // Fire Purchase exactly once per order, from the page a customer only ever
+  // reaches after a real checkout. Guarded by a localStorage marker (not
+  // sessionStorage) so it survives refreshes, back-button, closing the tab,
+  // or reopening this exact URL again days later — none of those can re-fire it.
+  useEffect(() => {
+    const order = searchParams.get("order");
+    if (!order) return;
+
+    const firedKey = `sashico_purchase_fired_${order}`;
+    try {
+      if (localStorage.getItem(firedKey)) return; // already tracked, ever
+
+      const raw = sessionStorage.getItem("sashico_pending_purchase");
+      if (!raw) return; // no handoff data (e.g. URL reopened in a new session) — skip rather than guess
+
+      const pending = JSON.parse(raw);
+      if (pending.orderId !== order) return; // stale/unrelated payload — don't misattribute
+
+      trackPurchase(pending.orderId, pending.value, pending.numItems, {
+        email: pending.email,
+        phone: pending.phone,
+        name: pending.name,
+      });
+
+      localStorage.setItem(firedKey, "1");
+      sessionStorage.removeItem("sashico_pending_purchase");
+    } catch {
+      // storage unavailable — nothing to do; no crash, no bogus fire
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   return (
     <div className="pt-28 pb-24 min-h-screen bg-white">
