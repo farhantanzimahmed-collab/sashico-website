@@ -72,6 +72,24 @@ interface TrackingEvent {
   };
 }
 
+// Pixel scripts load after hydration (afterInteractive / lazyOnload), so events fired
+// on mount — ViewContent on a product page, InitiateCheckout on a direct checkout
+// load — used to find no fbq/gtag/ttq yet and were silently dropped. Wait for the
+// global instead (up to 15s) so the event still goes out once the script is ready.
+function whenReady(isReady: () => boolean, fire: () => void, timeoutMs = 15000) {
+  if (typeof window === "undefined") return;
+  if (isReady()) return fire();
+  const started = Date.now();
+  const timer = window.setInterval(() => {
+    if (isReady()) {
+      window.clearInterval(timer);
+      fire();
+    } else if (Date.now() - started > timeoutMs) {
+      window.clearInterval(timer);
+    }
+  }, 200);
+}
+
 export function useTracking() {
   const track = useCallback(({ type, data = {}, eventId }: TrackingEvent) => {
     const eventData = {
@@ -80,16 +98,16 @@ export function useTracking() {
     };
 
     // Meta Pixel — fire once, with eventId when provided for CAPI deduplication
-    if (typeof window !== "undefined" && window.fbq) {
+    whenReady(() => !!window.fbq, () => {
       if (eventId) {
-        window.fbq("track", type, eventData, { eventID: eventId });
+        window.fbq!("track", type, eventData, { eventID: eventId });
       } else {
-        window.fbq("track", type, eventData);
+        window.fbq!("track", type, eventData);
       }
-    }
+    });
 
     // Google Analytics 4
-    if (typeof window !== "undefined" && window.gtag) {
+    whenReady(() => !!window.gtag, () => {
       const gaEventMap: Record<string, string> = {
         PageView: "page_view",
         ViewContent: "view_item",
@@ -100,8 +118,8 @@ export function useTracking() {
         Contact: "contact",
       };
       const gaEvent = gaEventMap[type] || type.toLowerCase();
-      window.gtag("event", gaEvent, eventData);
-    }
+      window.gtag!("event", gaEvent, eventData);
+    });
 
     // Google Tag Manager via dataLayer
     if (typeof window !== "undefined" && window.dataLayer) {
@@ -111,10 +129,8 @@ export function useTracking() {
       });
     }
 
-    // TikTok Pixel
-    if (typeof window !== "undefined" && window.ttq) {
-      window.ttq.track(type, eventData);
-    }
+    // TikTok Pixel (lazyOnload — loads last)
+    whenReady(() => !!window.ttq, () => window.ttq!.track(type, eventData));
   }, []);
 
   const trackPageView = useCallback(() => track({ type: "PageView" }), [track]);
