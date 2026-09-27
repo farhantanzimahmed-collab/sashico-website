@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       event_name: eventName,
       event_time: Math.floor(Date.now() / 1000),
       action_source: "website",
-      event_source_url: eventSourceUrl || "https://sashico.vercel.app",
+      event_source_url: eventSourceUrl || "https://sashico.net",
       user_data: {
         ...hashedUserData,
         client_ip_address: ip,
