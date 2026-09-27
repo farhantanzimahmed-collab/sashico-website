@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for cPanel (Passenger) hosting — see scripts/deploy-cpanel.sh
+  output: "standalone",
+
   images: {
     remotePatterns: [
       {

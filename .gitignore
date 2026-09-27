@@ -47,3 +47,4 @@ supabase/.temp/
 # Local migration/setup scripts (contain hardcoded keys)
 run-migration.mjs
 SETUP.md
+.deploy
