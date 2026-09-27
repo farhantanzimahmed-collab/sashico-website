@@ -77,6 +77,11 @@ fi
 mv ${REMOTE_APP}-staging $REMOTE_APP
 mkdir -p $REMOTE_APP/tmp && touch $REMOTE_APP/tmp/restart.txt
 cloudlinux-selector restart --json --interpreter nodejs --app-root $REMOTE_APP >/dev/null
+# Let Apache serve static assets straight from the docroot (bypasses Node on the
+# 1-CPU plan). Cache/gzip headers for these live in ~/public_html/.htaccess.
+mkdir -p ~/public_html/_next && ln -sfn ~/$REMOTE_APP/.next/static ~/public_html/_next/static
+for f in ~/$REMOTE_APP/public/*; do ln -sfn "\$f" ~/public_html/"\$(basename "\$f")"; done
+find ~/public_html -maxdepth 1 -xtype l -delete
 rm -rf ${REMOTE_APP}-prev/.next/cache
 EOF
 
