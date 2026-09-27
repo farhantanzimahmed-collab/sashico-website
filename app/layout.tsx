@@ -58,6 +58,10 @@ export const metadata: Metadata = {
     description: "Premium embroidery streetwear crafted in Bangladesh.",
     images: ["https://sashico.net/og-image.jpg"],
   },
+  // Meta Business Manager domain verification (Brand Safety → Domains → sashico.net)
+  other: {
+    "facebook-domain-verification": "26l5od1k78nzn61ji80buyt6kffeft",
+  },
   robots: {
     index: true,
     follow: true,
