@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { sendOrderConfirmationEmail } from "@/lib/email/orderConfirmation";
 import { notifyNewOrder, notifyNewCustomer, checkAndNotifyStockLevels } from "@/lib/telegram/notificationService";
 import { getTelegramConfig } from "@/lib/telegram/config";
+import { sendMetaEvent, requestContext } from "@/lib/meta/capi";
 
 function getAdmin() {
   return createServiceClient(
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
       total_amount,
       payment_method,
       notes,
+      tracking,
     } = body;
 
     if (!customer_name || !customer_email || !customer_phone || !shipping_address || !items?.length) {
@@ -92,6 +94,35 @@ export async function POST(req: NextRequest) {
 
     // Send confirmation email (best-effort, non-blocking)
     sendOrderConfirmationEmail(order).catch((e) => console.error("[email]", e));
+
+    // Meta CAPI Purchase — sent the moment the order exists, so it's counted even if
+    // the customer never reaches the thank-you page. Same event_id as the browser
+    // Pixel Purchase on the success page → Meta dedupes the pair.
+    const orderItems = order.items as { product_id: string; quantity: number; unit_price: number }[];
+    sendMetaEvent({
+      eventName: "Purchase",
+      eventId: `purchase_${order.order_number}`,
+      eventSourceUrl: tracking?.eventSourceUrl,
+      fbc: tracking?.fbc,
+      fbp: tracking?.fbp,
+      ...requestContext(req.headers),
+      userData: {
+        email: customer_email,
+        phone: customer_phone,
+        name: customer_name,
+        city: shipping_address?.district || shipping_address?.city,
+        country: "bd",
+      },
+      customData: {
+        currency: "BDT",
+        value: total_amount,
+        order_id: order.order_number,
+        content_type: "product",
+        content_ids: [...new Set(orderItems.map((i) => i.product_id))],
+        contents: orderItems.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price })),
+        num_items: orderItems.reduce((s, i) => s + i.quantity, 0),
+      },
+    }).catch((e) => console.error("[capi:purchase]", e));
 
     // Send Telegram notification (best-effort, non-blocking)
     notifyNewOrder(order).catch((e) => console.error("[telegram:order]", e));

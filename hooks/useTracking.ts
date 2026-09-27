@@ -40,6 +40,13 @@ declare global {
   }
 }
 
+/** One line item in Meta's `contents` format — `id` must match the catalog feed's g:id (product.id). */
+export interface TrackingContent {
+  id: string;
+  quantity: number;
+  item_price: number;
+}
+
 interface TrackingEvent {
   type:
     | "PageView"
@@ -54,6 +61,8 @@ interface TrackingEvent {
   eventId?: string;
   data?: {
     content_ids?: string[];
+    content_type?: "product";
+    contents?: TrackingContent[];
     content_name?: string;
     content_category?: string;
     value?: number;
@@ -113,19 +122,18 @@ export function useTracking() {
   const trackProductView = useCallback(
     (productId: string, productName: string, price: number, category: string) => {
       const eventId = `vc_${productId}_${Date.now()}`;
-      // Pass eventId into track() so Meta Pixel fires exactly once with dedup ID
-      track({
-        type: "ViewContent",
-        eventId,
-        data: { content_ids: [productId], content_name: productName, content_category: category, value: price },
-      });
-      sendCAPI("ViewContent", eventId, {
+      // content_type + contents let Meta match this event to the catalog item
+      const data = {
         content_ids: [productId],
+        content_type: "product" as const,
+        contents: [{ id: productId, quantity: 1, item_price: price }],
         content_name: productName,
         content_category: category,
         value: price,
-        currency: "BDT",
-      });
+      };
+      // Pass eventId into track() so Meta Pixel fires exactly once with dedup ID
+      track({ type: "ViewContent", eventId, data });
+      sendCAPI("ViewContent", eventId, { ...data, currency: "BDT" });
     },
     [track]
   );
@@ -133,58 +141,58 @@ export function useTracking() {
   const trackAddToCart = useCallback(
     (productId: string, productName: string, price: number, quantity: number) => {
       const eventId = `atc_${productId}_${Date.now()}`;
-      // Pass eventId into track() so Meta Pixel fires exactly once with dedup ID
-      track({
-        type: "AddToCart",
-        eventId,
-        data: {
-          content_ids: [productId],
-          content_name: productName,
-          value: price * quantity,
-          num_items: quantity,
-        },
-      });
-      sendCAPI("AddToCart", eventId, {
+      const data = {
         content_ids: [productId],
+        content_type: "product" as const,
+        contents: [{ id: productId, quantity, item_price: price }],
         content_name: productName,
         value: price * quantity,
-        currency: "BDT",
         num_items: quantity,
-      });
+      };
+      // Pass eventId into track() so Meta Pixel fires exactly once with dedup ID
+      track({ type: "AddToCart", eventId, data });
+      sendCAPI("AddToCart", eventId, { ...data, currency: "BDT" });
     },
     [track]
   );
 
   const trackBeginCheckout = useCallback(
-    (value: number, numItems: number) => {
+    (value: number, contents: TrackingContent[]) => {
       const eventId = `checkout_${Date.now()}`;
+      const data = {
+        content_ids: [...new Set(contents.map((c) => c.id))],
+        content_type: "product" as const,
+        contents,
+        value,
+        num_items: contents.reduce((s, c) => s + c.quantity, 0),
+      };
       // Pass eventId into track() so the browser pixel event carries the same
       // ID as the CAPI event below — required for Meta to dedupe the two.
-      track({ type: "InitiateCheckout", eventId, data: { value, num_items: numItems } });
-      sendCAPI("InitiateCheckout", eventId, { value, currency: "BDT", num_items: numItems });
+      track({ type: "InitiateCheckout", eventId, data });
+      sendCAPI("InitiateCheckout", eventId, { ...data, currency: "BDT" });
     },
     [track]
   );
 
   const trackPurchase = useCallback(
-    (orderId: string, value: number, numItems: number, userData?: { email?: string; phone?: string; name?: string }) => {
-      // Stable eventId (keyed to orderId, not Date.now()) so calling this twice
-      // for the same order — e.g. a defensive re-render — still dedupes at Meta
-      // instead of registering as two Purchases.
+    (orderId: string, value: number, contents: TrackingContent[], numItems?: number) => {
+      // Stable eventId (keyed to orderId, not Date.now()) — must equal the one
+      // /api/orders uses for the server-side CAPI Purchase, so Meta dedupes the
+      // pair. CAPI is NOT sent from here: the server already sent it with full
+      // customer data the moment the order was saved.
       const eventId = `purchase_${orderId}`;
-      // Single fbq call, carrying eventId — fires exactly once per invocation,
-      // deduped against the matching CAPI event_id sent below.
       track({
         type: "Purchase",
         eventId,
-        data: { order_id: orderId, value, num_items: numItems },
+        data: {
+          order_id: orderId,
+          value,
+          content_ids: [...new Set(contents.map((c) => c.id))],
+          content_type: "product",
+          contents,
+          num_items: numItems ?? contents.reduce((s, c) => s + c.quantity, 0),
+        },
       });
-      sendCAPI("Purchase", eventId, {
-        value,
-        currency: "BDT",
-        num_items: numItems,
-        order_id: orderId,
-      }, userData || {});
     },
     [track]
   );

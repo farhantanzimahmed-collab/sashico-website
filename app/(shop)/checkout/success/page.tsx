@@ -30,11 +30,7 @@ function SuccessContent() {
       const pending = JSON.parse(raw);
       if (pending.orderId !== order) return; // stale/unrelated payload — don't misattribute
 
-      trackPurchase(pending.orderId, pending.value, pending.numItems, {
-        email: pending.email,
-        phone: pending.phone,
-        name: pending.name,
-      });
+      trackPurchase(pending.orderId, pending.value, pending.contents ?? [], pending.numItems);
 
       localStorage.setItem(firedKey, "1");
       sessionStorage.removeItem("sashico_pending_purchase");

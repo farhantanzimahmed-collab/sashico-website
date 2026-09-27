@@ -10,6 +10,7 @@ import { ShieldCheck, Truck, Banknote, MapPin } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice, getImageUrl } from "@/lib/utils";
 import { useTracking } from "@/hooks/useTracking";
+import { getFbCookies } from "@/lib/attribution";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import toast from "react-hot-toast";
@@ -80,7 +81,10 @@ export default function CheckoutPage() {
     // Fire InitiateCheckout once per session landing on this page
     if (items.length > 0 && !checkoutTracked.current) {
       checkoutTracked.current = true;
-      trackBeginCheckout(grandTotal, items.reduce((s, i) => s + i.quantity, 0));
+      trackBeginCheckout(
+        grandTotal,
+        items.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price }))
+      );
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated]);
@@ -120,6 +124,8 @@ export default function CheckoutPage() {
           total_amount:    grandTotal,
           payment_method:  "cod",
           notes:           data.notes || null,
+          // For the server-side Meta Purchase event (matching + attribution)
+          tracking: { ...getFbCookies(), eventSourceUrl: window.location.href },
         }),
       });
 
@@ -139,6 +145,7 @@ export default function CheckoutPage() {
             orderId: order.order_number,
             value: grandTotal,
             numItems: items.reduce((s, i) => s + i.quantity, 0),
+            contents: items.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price })),
             email: data.email,
             phone: data.phone,
             name: data.full_name,
