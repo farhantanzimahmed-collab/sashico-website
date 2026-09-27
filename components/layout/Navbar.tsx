@@ -58,7 +58,7 @@ export default function Navbar({ settings }: NavbarProps) {
   const navLinkClass = (href: string, sale?: boolean) => cn(
     "label-xs transition-colors duration-200 whitespace-nowrap",
     sale
-      ? "text-red-500 hover:text-red-600 font-semibold"
+      ? "sale-shimmer px-3.5 py-[7px] font-bold hover:bg-[#991b1b]"
       : transparent
         ? pathname === href ? "text-white" : "text-white/90 hover:text-white"
         : pathname === href ? "text-black" : "text-brand-gray-600 hover:text-black"
@@ -73,7 +73,7 @@ export default function Navbar({ settings }: NavbarProps) {
     <>
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-        !transparent && "bg-white/96 backdrop-blur-md border-b border-black/8"
+        !transparent && "bg-white/95 backdrop-blur-md border-b border-black/8"
       )}>
         {/* Announcement bar — scrolling marquee */}
         {(() => {

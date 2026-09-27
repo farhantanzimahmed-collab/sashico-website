@@ -57,7 +57,7 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
                   <span className={cn(
                     "display-heading text-[1.15rem] tracking-[0.06em] transition-colors whitespace-nowrap",
                     link.sale
-                      ? "text-red-500 group-hover:text-red-600"
+                      ? "sale-shimmer px-3 py-1 group-hover:bg-[#991b1b]"
                       : "text-black group-hover:text-brand-gray-500"
                   )}>
                     {link.label.toUpperCase()}
