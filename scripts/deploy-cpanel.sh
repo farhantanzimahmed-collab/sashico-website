@@ -71,7 +71,8 @@ set -e
 cd ~
 if [ -d $REMOTE_APP ]; then
   cp -p $REMOTE_APP/env.json ${REMOTE_APP}-staging/env.json 2>/dev/null || true
-  [ -d $REMOTE_APP/.next/cache ] && cp -R $REMOTE_APP/.next/cache ${REMOTE_APP}-staging/.next/cache || true
+  # Keep only optimised images — cached pages/data from the old build would serve stale content
+  [ -d $REMOTE_APP/.next/cache/images ] && mkdir -p ${REMOTE_APP}-staging/.next/cache && cp -R $REMOTE_APP/.next/cache/images ${REMOTE_APP}-staging/.next/cache/images || true
   rm -rf ${REMOTE_APP}-prev && mv $REMOTE_APP ${REMOTE_APP}-prev
 fi
 mv ${REMOTE_APP}-staging $REMOTE_APP
