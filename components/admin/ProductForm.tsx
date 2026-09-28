@@ -1,5 +1,6 @@
 "use client";
 
+import { refreshStorefront } from "@/lib/refreshStorefront";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -128,6 +129,11 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
     e.target.value = "";
   }
 
+  // Tap-friendly alternative to drag (HTML5 drag doesn't work on phones)
+  function makeMainImage(idx: number) {
+    setImages((prev) => [prev[idx], ...prev.filter((_, i) => i !== idx)]);
+  }
+
   function removeImage(idx: number) {
     setImages((prev) => prev.filter((_, i) => i !== idx));
   }
@@ -207,6 +213,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       };
 
       await saveWithFallback(payload);
+      await refreshStorefront(); // show the change on the live site right away
       toast.success(mode === "create" ? "Product created successfully!" : "Product updated successfully!");
       router.push("/admin/products");
       router.refresh();
@@ -438,7 +445,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
               <h3 className="text-sm font-sans font-semibold text-brand-black uppercase tracking-wider mb-1">
                 Product Images
               </h3>
-              <p className="text-xs text-brand-gray-400 font-sans">Upload multiple images at once — hold Ctrl/Cmd to select several files. Drag to reorder. First image = main product photo.</p>
+              <p className="text-xs text-brand-gray-400 font-sans">Upload multiple images at once — hold Ctrl/Cmd to select several files. Drag to reorder, or tap “Make main” on any photo. The ★ Main photo is what shoppers and ads see first.</p>
             </div>
 
             {/* Upload button — prominent, at top */}
@@ -481,7 +488,8 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
-                      className="absolute top-1.5 right-1.5 bg-brand-black text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      aria-label="Remove image"
+                      className="absolute top-1.5 right-1.5 bg-brand-black text-white p-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -489,6 +497,15 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
                       <div className="absolute bottom-0 inset-x-0 bg-brand-black py-1 text-center">
                         <p className="text-2xs text-white font-sans">★ Main</p>
                       </div>
+                    )}
+                    {idx > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => makeMainImage(idx)}
+                        className="absolute bottom-0 inset-x-0 bg-white/90 hover:bg-brand-black hover:text-white border-t border-black/10 py-1 text-center text-2xs font-sans text-brand-black transition-colors z-10"
+                      >
+                        ☆ Make main
+                      </button>
                     )}
                     {idx > 0 && (
                       <div className="absolute top-1.5 left-1.5 bg-black/50 px-1.5 py-0.5">

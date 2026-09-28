@@ -43,7 +43,7 @@ export const getCachedSiteSettings = unstable_cache(
     }
   },
   ["site-settings"],
-  { revalidate: 300 }
+  { revalidate: 300, tags: ["catalog"] }
 );
 
 // ── Marketing settings (Meta Pixel, GA, promo popup) ─────────────────────────
@@ -62,7 +62,7 @@ export const getCachedMarketingSettings = unstable_cache(
     }
   },
   ["marketing-settings"],
-  { revalidate: 600 }
+  { revalidate: 600, tags: ["catalog"] }
 );
 
 // ── Home page products ────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ export const getCachedHomeProducts = unstable_cache(
     };
   },
   ["home-products"],
-  { revalidate: 180 }
+  { revalidate: 180, tags: ["catalog"] }
 );
 
 // ── Shop page products (no filters) ──────────────────────────────────────────
@@ -107,7 +107,7 @@ export const getCachedShopProducts = unstable_cache(
     }
   },
   ["shop-products"],
-  { revalidate: 120 }
+  { revalidate: 120, tags: ["catalog"] }
 );
 
 // ── Single product ────────────────────────────────────────────────────────────
@@ -127,5 +127,5 @@ export const getCachedProduct = unstable_cache(
     };
   },
   ["product"],
-  { revalidate: 300 }
+  { revalidate: 300, tags: ["catalog"] }
 );

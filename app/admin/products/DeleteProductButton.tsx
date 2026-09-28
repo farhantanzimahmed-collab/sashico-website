@@ -5,6 +5,7 @@ import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { refreshStorefront } from "@/lib/refreshStorefront";
 
 export default function DeleteProductButton({ productId }: { productId: string }) {
   const [confirming, setConfirming] = useState(false);
@@ -21,6 +22,7 @@ export default function DeleteProductButton({ productId }: { productId: string }
     if (error) {
       toast.error("Failed to delete product");
     } else {
+      await refreshStorefront();
       toast.success("Product deleted");
       router.refresh();
     }
