@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Heart, Share2, Ruler, ChevronDown, ChevronUp, Truck, ShieldCheck } from "lucide-react";
 import { Product } from "@/lib/types";
 import { formatPrice, getDiscountPercentage } from "@/lib/utils";
-import { getSizeChart } from "@/lib/size-charts";
+import { getProductSizeChart } from "@/lib/size-charts";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useTracking } from "@/hooks/useTracking";
@@ -23,7 +23,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(true);
-  const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [shippingOpen, setShippingOpen] = useState(false);
   const [sizeError, setSizeError] = useState(false);
 
@@ -42,7 +41,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const hasDiscount = !!product.discount_price && product.discount_price < product.price;
   const discount = hasDiscount ? getDiscountPercentage(product.price, product.discount_price!) : 0;
   const inStock = product.stock_quantity > 0;
-  const sizeChart = getSizeChart(product.category);
+  const sizeChart = getProductSizeChart(product);
+  // Beanies/bags come in one size — show "Free Size" instead of a picker + chart
+  const isFreeSize =
+    product.sizes.length > 0 && product.sizes.every((s) => /free\s*size|one\s*size/i.test(s.size));
+  // Only list chart rows for sizes this product is actually made in
+  const chartRows = sizeChart
+    ? sizeChart.rows.filter((r) => product.sizes.length === 0 || product.sizes.some((s) => s.size.toUpperCase() === r.size.toUpperCase()))
+    : [];
 
   function handleAddToCart() {
     if (!selectedSize) {
@@ -170,13 +176,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             Size
             {selectedSize && (
               <span className="ml-2 normal-case tracking-normal text-brand-gray-500 font-normal">
-                — {selectedSize}
+                {!isFreeSize && <>— {selectedSize}</>}
                 {selectedStock > 0 && selectedStock <= 3 && (
                   <span className="ml-1 text-orange-600 text-xs">({selectedStock} left)</span>
                 )}
               </span>
             )}
           </p>
+          {!isFreeSize && (
           <Link
             href="/size-guide"
             className="flex items-center gap-1 label-xs text-brand-gray-400 hover:text-black transition-colors"
@@ -184,8 +191,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             <Ruler className="h-3 w-3" />
             Size Guide
           </Link>
+          )}
         </div>
 
+        {isFreeSize ? (
+          <p className="inline-flex items-center px-4 py-3 text-xs uppercase tracking-wider border border-black rounded-lg text-black">
+            Free Size
+          </p>
+        ) : (
         <div className={cn("flex flex-wrap gap-2", sizeError && "ring-1 ring-red-300 rounded-lg p-2 -m-2")}>
           {product.sizes.map((sizeObj) => {
             const oos = sizeObj.stock === 0;
@@ -208,7 +221,47 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             );
           })}
         </div>
+        )}
         {sizeError && <p className="mt-2 text-xs text-red-600">Please select a size</p>}
+
+        {/* Category-specific size chart, directly under the size picker */}
+        {sizeChart && chartRows.length > 0 && (
+          <div className="mt-5 border border-black/8 rounded-lg px-4 py-3">
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="label-xs text-black">{sizeChart.label}</p>
+              <p className="text-2xs text-brand-gray-500">in {sizeChart.unit}</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-black/10">
+                    {sizeChart.headers.map((h) => (
+                      <th key={h} className="text-left py-2 pr-4 label-xs text-black font-semibold whitespace-nowrap">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {chartRows.map((row) => (
+                    <tr
+                      key={row.size}
+                      className={cn(
+                        "border-b border-black/6 last:border-0 transition-colors",
+                        selectedSize?.toUpperCase() === row.size.toUpperCase() && "bg-brand-gray-50"
+                      )}
+                    >
+                      <td className="py-2 pr-4 font-medium text-black">{row.size}</td>
+                      <td className="py-2 pr-4 text-brand-gray-600">{row.length}</td>
+                      <td className="py-2 pr-4 text-brand-gray-600">{row.chest}</td>
+                      <td className="py-2 pr-4 text-brand-gray-600">{row.sleeve}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quantity */}
@@ -300,39 +353,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
               </ul>
             ),
           },
-          ...(sizeChart ? [{
-            label: "Size Chart",
-            open: sizeChartOpen,
-            toggle: () => setSizeChartOpen(!sizeChartOpen),
-            content: (
-              <div className="pb-1">
-                <p className="text-xs text-brand-gray-400 mb-3">All measurements in {sizeChart.unit}</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="border-b border-black/10">
-                        {sizeChart.headers.map((h) => (
-                          <th key={h} className="text-left py-2 pr-6 label-xs text-black font-semibold whitespace-nowrap">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sizeChart.rows.map((row) => (
-                        <tr key={row.size} className="border-b border-black/6 last:border-0">
-                          <td className="py-2.5 pr-6 font-medium text-black">{row.size}</td>
-                          <td className="py-2.5 pr-6 text-brand-gray-600">{row.length}</td>
-                          <td className="py-2.5 pr-6 text-brand-gray-600">{row.chest}</td>
-                          <td className="py-2.5 pr-6 text-brand-gray-600">{row.sleeve}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ),
-          }] : []),
           {
             label: "Shipping & Returns",
             open: shippingOpen,

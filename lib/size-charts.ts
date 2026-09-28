@@ -14,7 +14,7 @@ export interface SizeChart {
 
 const SIZE_CHARTS: Record<string, SizeChart> = {
   "T-Shirts": {
-    label: "T-Shirt Size Guide",
+    label: "T-Shirt Size Chart",
     unit: "inches",
     headers: ["Size", "Length", "Chest", "Sleeve"],
     rows: [
@@ -25,7 +25,7 @@ const SIZE_CHARTS: Record<string, SizeChart> = {
     ],
   },
   "Polo": {
-    label: "Polo Size Guide",
+    label: "Polo Size Chart",
     unit: "inches",
     headers: ["Size", "Length", "Chest", "Sleeve"],
     rows: [
@@ -36,7 +36,7 @@ const SIZE_CHARTS: Record<string, SizeChart> = {
     ],
   },
   "Cuban Shirts": {
-    label: "Cuban Shirt Size Guide",
+    label: "Cuban Shirt Size Chart",
     unit: "inches",
     headers: ["Size", "Length", "Chest", "Sleeve"],
     rows: [
@@ -47,7 +47,7 @@ const SIZE_CHARTS: Record<string, SizeChart> = {
     ],
   },
   "Winter": {
-    label: "Sweatshirt & Hoodie Size Guide",
+    label: "Sweatshirt & Hoodie Size Chart",
     unit: "inches",
     headers: ["Size", "Length", "Chest", "Sleeve"],
     rows: [
@@ -58,6 +58,38 @@ const SIZE_CHARTS: Record<string, SizeChart> = {
     ],
   },
 };
+
+// Product-page charts for hoodies and sweatshirts. Measurements are the brand's
+// existing "Sweatshirt & Hoodie" chart — update here if hoodie specs differ.
+const WINTER_ROWS = SIZE_CHARTS["Winter"].rows;
+const PRODUCT_CHARTS: Record<string, SizeChart> = {
+  hoodie: { label: "Hoodie Size Chart", unit: "inches", headers: ["Size", "Length", "Chest", "Sleeve"], rows: WINTER_ROWS },
+  sweatshirt: { label: "Sweatshirt Size Chart", unit: "inches", headers: ["Size", "Length", "Chest", "Sleeve"], rows: WINTER_ROWS },
+};
+
+/**
+ * The one chart that applies to a product (product page). Explicit category
+ * mapping — substring matching wrongly gave Cuban shirts ("shirts") the T-shirt
+ * chart and hoodies/sweatshirts none. Returns null for free-size items
+ * (beanies, bags) and categories without a chart (e.g. jackets).
+ */
+export function getProductSizeChart(product: { category: string; name?: string }): SizeChart | null {
+  const cat = (product.category || "").toLowerCase().trim();
+  const name = (product.name || "").toLowerCase();
+  switch (cat) {
+    case "t-shirts":
+      return name.includes("polo") ? SIZE_CHARTS["Polo"] : SIZE_CHARTS["T-Shirts"];
+    case "shirts":
+    case "cuban shirts":
+      return SIZE_CHARTS["Cuban Shirts"];
+    case "hoodies":
+      return PRODUCT_CHARTS.hoodie;
+    case "sweatshirts":
+      return PRODUCT_CHARTS.sweatshirt;
+    default:
+      return null;
+  }
+}
 
 /** Returns the size chart for a given product category, or null if none defined. */
 export function getSizeChart(category: string): SizeChart | null {
