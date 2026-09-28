@@ -9,7 +9,10 @@ import { getCachedHomeProducts } from "@/lib/cache";
 import { SiteSettings } from "@/lib/types";
 
 export const metadata: Metadata = {
-  title: "Sashico | Premium Embroidery Streetwear",
+  title: { absolute: "Sashico — Premium Streetwear in Bangladesh" },
+  description:
+    "Discover Sashico, a Bangladesh-based streetwear brand creating premium T-shirts, hoodies and contemporary urban apparel.",
+  alternates: { canonical: "/" },
 };
 
 // revalidate is now controlled inside getCachedHomeProducts (180s)

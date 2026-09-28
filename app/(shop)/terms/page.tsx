@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Sashico terms of service — please read before using our website.",
+  alternates: { canonical: "/terms" },
 };
 
 export const revalidate = 3600;

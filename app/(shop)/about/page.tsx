@@ -6,8 +6,10 @@ import { getImageUrl } from "@/lib/utils";
 import Newsletter from "@/components/home/Newsletter";
 
 export const metadata: Metadata = {
-  title: "About",
-  description: "Learn about Sashico — the Bangladeshi streetwear brand redefining embroidery-based fashion.",
+  title: "About Us — Bangladesh Streetwear Brand",
+  description:
+    "Sashico is a Bangladesh-based streetwear brand from Dhaka, crafting premium embroidered T-shirts, shirts and hoodies that celebrate local culture.",
+  alternates: { canonical: "/about" },
 };
 
 export const revalidate = 3600;

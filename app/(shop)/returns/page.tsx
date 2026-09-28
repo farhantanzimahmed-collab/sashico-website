@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Returns & Exchanges",
   description: "Sashico refund, exchange and return policy — contact us within 72 hours of receiving your order.",
+  alternates: { canonical: "/returns" },
 };
 
 export const revalidate = 3600;

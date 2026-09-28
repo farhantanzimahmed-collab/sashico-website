@@ -4,6 +4,7 @@ import { getSizeChart } from "@/lib/size-charts";
 export const metadata: Metadata = {
   title: "Size Guide",
   description: "Find your perfect fit with the Sashico size guide.",
+  alternates: { canonical: "/size-guide" },
 };
 
 const CATEGORIES = ["T-Shirts", "Polo", "Cuban Shirts", "Winter"] as const;

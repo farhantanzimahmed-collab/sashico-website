@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Sashico privacy policy — how we collect, use, and protect your information.",
+  alternates: { canonical: "/privacy" },
 };
 
 export const revalidate = 3600;

@@ -8,9 +8,11 @@ import { Product } from "@/lib/types";
 import { SlidersHorizontal } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Shop",
+  title: "Shop Streetwear — T-Shirts, Shirts, Hoodies & Bags",
   description:
-    "Browse all Sashico premium embroidery streetwear. Filter by category, size, and price.",
+    "Shop Sashico streetwear online in Bangladesh — embroidered T-shirts, Cuban shirts, hoodies, sweatshirts, bags and accessories. Cash on delivery nationwide.",
+  // Filter/sort variants (?category=, ?filter=, ?sort=) all consolidate to /shop
+  alternates: { canonical: "/shop" },
 };
 
 export const revalidate = 300;
@@ -144,9 +146,10 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
       {/* Products are visible within the first screen — no large header/sidebar pushing them down */}
       <div className="lg:hidden mx-auto max-w-8xl px-4 pt-4 pb-3 border-b border-brand-gray-100">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="font-serif text-2xl text-brand-black leading-none">
+          {/* h2 on purpose — the desktop header above holds the page's single <h1> */}
+          <h2 className="font-serif text-2xl text-brand-black leading-none">
             {heading}
-          </h1>
+          </h2>
         </div>
         <Suspense fallback={
           <div className="flex gap-2 overflow-hidden">

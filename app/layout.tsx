@@ -5,7 +5,8 @@ import TrackingScripts from "@/components/tracking/TrackingScripts";
 import RouteChangeTracker from "@/components/tracking/RouteChangeTracker";
 import StoreHydration from "@/components/StoreHydration";
 import PromoPopup from "@/components/ui/PromoPopup";
-import { getCachedMarketingSettings } from "@/lib/cache";
+import { getCachedMarketingSettings, getCachedSiteSettings } from "@/lib/cache";
+import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION, OG_IMAGE, siteJsonLd, jsonLdScript } from "@/lib/seo";
 
 // Explicit viewport export — ensures correct mobile rendering and eliminates
 // the 300ms tap delay on Android browsers older than Chrome 55
@@ -16,52 +17,56 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Sashico | Premium Embroidery Streetwear",
+    default: SITE_TITLE,
     template: "%s | Sashico",
   },
-  description:
-    "Premium embroidery streetwear crafted in Bangladesh. Shop the latest collections of t-shirts, hoodies, and jackets with authentic hand-stitched embroidery.",
+  description: SITE_DESCRIPTION,
+  applicationName: "Sashico",
   keywords: [
     "Sashico",
+    "Sashico Bangladesh",
+    "Sashico clothing",
+    "Sashico streetwear",
+    "Sashico T-shirt",
+    "Sashico hoodie",
     "Bangladesh streetwear",
-    "embroidery fashion",
-    "premium streetwear",
-    "Dhaka fashion",
-    "embroidered clothing",
+    "premium streetwear Bangladesh",
+    "embroidered clothing Bangladesh",
   ],
-  authors: [{ name: "Sashico" }],
+  authors: [{ name: "Sashico", url: SITE_URL }],
   creator: "Sashico",
   publisher: "Sashico",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://sashico.net"
-  ),
+  category: "Clothing",
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_APP_URL || "https://sashico.net",
+    url: SITE_URL,
     siteName: "Sashico",
-    title: "Sashico | Premium Embroidery Streetwear",
-    description:
-      "Premium embroidery streetwear crafted in Bangladesh. Authentic hand-stitched designs for the modern streetwear enthusiast.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: [
       {
-        url: "https://sashico.net/og-image.jpg",
+        url: OG_IMAGE,
         width: 2048,
         height: 899,
-        alt: "Sashico - Premium Embroidery Streetwear",
+        alt: "Sashico — Premium Streetwear in Bangladesh",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sashico | Premium Embroidery Streetwear",
-    description: "Premium embroidery streetwear crafted in Bangladesh.",
-    images: ["https://sashico.net/og-image.jpg"],
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
   },
-  // Meta Business Manager domain verification (Brand Safety → Domains → sashico.net)
-  other: {
-    "facebook-domain-verification": "26l5od1k78nzn61ji80buyt6kffeft",
+  // Safari / iOS: home-screen name + status bar; don't auto-link numbers as phone calls
+  appleWebApp: {
+    capable: true,
+    title: "Sashico",
+    statusBarStyle: "black-translucent",
   },
+  formatDetection: { telephone: false },
   robots: {
     index: true,
     follow: true,
@@ -73,6 +78,10 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  // Meta Business Manager domain verification (Brand Safety → Domains → sashico.net)
+  other: {
+    "facebook-domain-verification": "26l5od1k78nzn61ji80buyt6kffeft",
+  },
 };
 
 export default async function RootLayout({
@@ -81,12 +90,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   // Cached 10 min — concurrent visitors share one result, not one DB call each
-  const marketingSettings = await getCachedMarketingSettings();
+  const [marketingSettings, siteSettings] = await Promise.all([
+    getCachedMarketingSettings(),
+    getCachedSiteSettings(),
+  ]);
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        {/* Brand entity graph (Organization/OnlineStore + Brand + WebSite) on every page */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(siteJsonLd(siteSettings)) }}
+        />
         {/* Preload navbar logo — it's the first render-visible branded element */}
         <link rel="preload" href="/sashico-logo.png" as="image" type="image/png" />
         {/* Critical-path preconnects — reduce connection overhead on mobile */}

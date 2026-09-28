@@ -6,7 +6,8 @@ import ProductInfo from "@/components/product/ProductInfo";
 import ProductSection from "@/components/home/ProductSection";
 import { Product, Review } from "@/lib/types";
 import { Star } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getImageUrl } from "@/lib/utils";
+import { productTitle, productDescription, productJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 
 // Product pages are public (no auth needed) — plain client avoids cookies() in SSG context
 function createPublicClient() {
@@ -27,22 +28,31 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const supabase = createPublicClient();
   const { data: product } = await supabase
     .from("products")
-    .select("name, description, meta_title, meta_description, images")
+    .select("name, slug, description, meta_title, meta_description, images, category, price, discount_price, is_active")
     .eq("slug", cleanSlug)
     .single();
 
-  if (!product) return { title: "Product Not Found" };
+  if (!product || !product.is_active) return { title: "Product Not Found", robots: { index: false } };
+
+  const title = productTitle(product);
+  const description = productDescription(product);
+  const image = product.images?.length ? getImageUrl(product.images[0]) : undefined;
 
   return {
-    title: product.meta_title || product.name,
-    description:
-      product.meta_description ||
-      product.description ||
-      `Shop ${product.name} at Sashico`,
+    title,
+    description,
+    alternates: { canonical: `/shop/${product.slug}` },
     openGraph: {
-      title: product.name,
-      description: product.description || "",
-      images: product.images?.length ? [product.images[0]] : [],
+      title: `${title} | Sashico`,
+      description,
+      url: `/shop/${product.slug}`,
+      images: image ? [{ url: image, alt: product.name }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | Sashico`,
+      description,
+      images: image ? [image] : [],
     },
   };
 }
@@ -107,37 +117,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
       ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
       : 0;
 
-  // JSON-LD Structured Data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.description,
-    image: product.images,
-    offers: {
-      "@type": "Offer",
-      price: product.discount_price || product.price,
-      priceCurrency: "BDT",
-      availability:
-        product.stock_quantity > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-    },
-    aggregateRating:
-      productReviews.length > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: avgRating.toFixed(1),
-            reviewCount: productReviews.length,
-          }
-        : undefined,
-  };
+  // JSON-LD: Product (brand, offer, stock from per-size inventory) + breadcrumb trail
+  const jsonLd = [
+    productJsonLd(product, { rating: avgRating, count: productReviews.length }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Shop", path: "/shop" },
+      { name: product.name, path: `/shop/${product.slug}` },
+    ]),
+  ];
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
       <div className="pt-28">

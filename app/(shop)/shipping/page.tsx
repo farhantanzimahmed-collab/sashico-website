@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Shipping Policy",
   description: "Learn about Sashico shipping times, rates, and delivery details.",
+  alternates: { canonical: "/shipping" },
 };
 
 export const revalidate = 3600;
