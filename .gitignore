@@ -48,3 +48,6 @@ supabase/.temp/
 run-migration.mjs
 SETUP.md
 .deploy
+
+# Raw source video (web versions live in public/videos)
+*.mov

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { SiteSettings } from "@/lib/types";
 import { getImageUrl } from "@/lib/utils";
+import HeroVideo from "./HeroVideo";
 
 interface HeroProps {
   settings: SiteSettings;
@@ -31,12 +32,7 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
       {/* ── Background ─────────────────────────────────────── */}
       {heroMode === "video" && heroVideo ? (
         <div className="absolute inset-0">
-          <video
-            src={heroVideo}
-            autoPlay loop muted playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/55" />
+          <HeroVideo src={heroVideo} />
         </div>
 
       ) : heroMode === "single_image" && heroCoverImage ? (
