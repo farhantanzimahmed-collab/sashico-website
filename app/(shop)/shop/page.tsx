@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { sortByCollection } from "@/lib/collectionOrder";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import ProductCard from "@/components/shop/ProductCard";
@@ -81,7 +82,7 @@ async function getProducts(searchParams: SearchParams): Promise<Product[]> {
     query = query.lte("price", parseFloat(searchParams.maxPrice));
   }
 
-  const sortBy = searchParams.sort || "newest";
+  const sortBy = searchParams.sort || "collection";
   if (sortBy === "newest") query = query.order("created_at", { ascending: false });
   else if (sortBy === "price_asc") query = query.order("price", { ascending: true });
   else if (sortBy === "price_desc") query = query.order("price", { ascending: false });
@@ -101,6 +102,9 @@ async function getProducts(searchParams: SearchParams): Promise<Product[]> {
     );
   }
 
+  // Default view follows the merchandising order (T-shirts first … totes last)
+  if (sortBy === "collection") products = sortByCollection(products);
+
   return products.slice(0, 48);
 }
 
@@ -113,7 +117,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const products = await getProducts(params);
 
   const activeCategory = params.category || "all";
-  const activeSort = params.sort || "newest";
+  const activeSort = params.sort || "collection";
 
   const eyebrow = params.filter
     ? params.filter.charAt(0).toUpperCase() + params.filter.slice(1)

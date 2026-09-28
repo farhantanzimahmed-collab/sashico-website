@@ -26,7 +26,7 @@ export default function ShopFilters({
   const updateParam = useCallback(
     (key: string, value: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value === null || value === "all" || value === "newest") {
+      if (value === null || value === "all" || value === "collection") {
         params.delete(key);
       } else {
         params.set(key, value);
@@ -36,7 +36,7 @@ export default function ShopFilters({
     [router, searchParams]
   );
 
-  const hasFilters = activeCategory !== "all" || activeSort !== "newest" || activeSize;
+  const hasFilters = activeCategory !== "all" || activeSort !== "collection" || activeSize;
 
   return (
     <aside className="hidden lg:block w-56 flex-shrink-0 space-y-8">
@@ -56,6 +56,7 @@ export default function ShopFilters({
         <p className="text-2xs uppercase tracking-widest font-medium text-black mb-4">Sort By</p>
         <div className="space-y-2">
           {[
+            { value: "collection", label: "Collection" },
             { value: "newest", label: "Newest" },
             { value: "price_asc", label: "Price: Low to High" },
             { value: "price_desc", label: "Price: High to Low" },

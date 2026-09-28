@@ -15,6 +15,7 @@ interface MobileFilterBarProps {
 }
 
 const SORT_OPTIONS = [
+  { value: "collection", label: "Collection" },
   { value: "newest",     label: "Newest First" },
   { value: "price_asc",  label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
@@ -55,7 +56,7 @@ export default function MobileFilterBar({
   // Count active filters for the badge
   const activeFilterCount =
     (activeCategory !== "all" ? 1 : 0) +
-    (activeSort     !== "newest" ? 1 : 0) +
+    (activeSort     !== "collection" ? 1 : 0) +
     (activeSize ? 1 : 0);
 
   // Active filter label shown below the button
@@ -67,7 +68,7 @@ export default function MobileFilterBar({
   function applyFilters() {
     const params = new URLSearchParams();
     if (pendingCategory && pendingCategory !== "all") params.set("category", pendingCategory);
-    if (pendingSort     && pendingSort     !== "newest") params.set("sort", pendingSort);
+    if (pendingSort     && pendingSort     !== "collection") params.set("sort", pendingSort);
     if (pendingSize) params.set("size", pendingSize);
     router.push(`/shop${params.toString() ? `?${params.toString()}` : ""}`);
     setSheetOpen(false);
@@ -117,7 +118,7 @@ export default function MobileFilterBar({
             {activeCategoryLabel}
           </span>
         )}
-        {activeSort !== "newest" && (
+        {activeSort !== "collection" && (
           <span className="text-xs font-sans text-black border border-black px-2 py-0.5">
             {activeSortLabel}
           </span>
