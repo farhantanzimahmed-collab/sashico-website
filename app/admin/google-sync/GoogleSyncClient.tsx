@@ -103,6 +103,15 @@ export default function GoogleSyncClient({ initialConfig }: { initialConfig: Con
   return (
     <div className="space-y-6 max-w-3xl">
 
+      {/* What the sync does — admin panel is the source of truth for product display */}
+      <div className="bg-white border border-black/8 rounded p-4 text-sm font-sans text-brand-gray-600 space-y-1">
+        <p className="text-brand-black font-semibold">What Google Sync changes</p>
+        <p>✅ <strong>Stock per size</strong> for existing products (from the master sheet).</p>
+        <p>✅ <strong>New product codes</strong> added to the sheet are created once, with their Drive photos.</p>
+        <p>🔒 Never changed: photos &amp; photo order, name, description, prices, category, featured / new / best-seller flags, active on/off.</p>
+        <p>🔒 Products you delete here are never re-created, even if still in the sheet.</p>
+      </div>
+
       {/* Status card */}
       {initialConfig.last_synced_at && (
         <div className="bg-white border border-black/8 rounded p-4 flex items-center gap-3">

@@ -13,6 +13,38 @@ export interface SyncResult {
   log: string[];
 }
 
+/*
+ * Ownership rules (so the daily sync never undoes admin-panel work):
+ *  - Admin panel owns everything customers see: photos + their order, name,
+ *    description, prices, category, flags, active/inactive, SEO fields.
+ *  - The master sheet owns inventory: sizes + stock of existing products.
+ *  - A product code is created from the sheet only the FIRST time it is ever
+ *    seen. Codes already seen are remembered, so a product deleted in admin
+ *    is never re-created just because its row is still in the sheet.
+ */
+const KNOWN_CODES_FILE = "google-sync-known-codes.json";
+
+async function readKnownCodes(supabase: ReturnType<typeof createClient>): Promise<Set<string> | null> {
+  const { data, error } = await supabase.storage.from("sashico-config").download(KNOWN_CODES_FILE);
+  if (error || !data) return null;
+  try {
+    const parsed = JSON.parse(await data.text());
+    return new Set<string>(Array.isArray(parsed.codes) ? parsed.codes : []);
+  } catch {
+    return null;
+  }
+}
+
+async function writeKnownCodes(supabase: ReturnType<typeof createClient>, codes: Set<string>) {
+  const blob = new Blob([JSON.stringify({ codes: [...codes].sort(), updated_at: new Date().toISOString() })], {
+    type: "application/json",
+  });
+  await supabase.storage.from("sashico-config").upload(KNOWN_CODES_FILE, blob, {
+    contentType: "application/json",
+    upsert: true,
+  });
+}
+
 function getAdminSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -109,16 +141,62 @@ export async function runGoogleSync(
   const catList: Category[] = categories ?? [];
   const categoryMap = new Map<string, Category>(catList.map(c => [c.slug, c]));
 
+  // First run with these rules: treat every code currently in the sheet as already
+  // known — rows whose product was deleted in admin must not come back.
+  const storedCodes = await readKnownCodes(supabase);
+  const knownCodes = storedCodes ?? new Set<string>(products.map((p) => p.product_code));
+  if (!storedCodes) log("🧷 First run with admin-owned rules — remembering all current sheet codes");
+
   for (const product of products) {
     result.processed++;
     const code = product.product_code;
+    const slug = slugify(code); // slug = product code (e.g. ss-t-001) — stable unique key
     log(`\n🔄 [${code}] ${product.name}`);
 
     try {
-      // Upload images
+      const { data: existing } = await supabase
+        .from("products")
+        .select("id, images, slug")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (existing) {
+        // Inventory only — never touch what the admin panel manages
+        const update: Record<string, unknown> = {
+          sizes: product.sizes,
+          stock_quantity: product.total_stock,
+          updated_at: new Date().toISOString(),
+        };
+
+        // Only fill photos if the product has none at all on the site
+        const driveFiles = imageMap.get(code) ?? [];
+        if (!(existing.images?.length) && driveFiles.length) {
+          const urls: string[] = [];
+          for (let i = 0; i < driveFiles.length; i++) {
+            const url = await uploadImage(supabase, driveFiles[i], code, i);
+            if (url) { urls.push(url); result.imagesUploaded++; }
+          }
+          if (urls.length) { update.images = urls; log(`  📸 Added ${urls.length} photo(s) (product had none)`); }
+        }
+
+        const { error } = await supabase.from("products").update(update).eq("slug", slug);
+        if (error) throw new Error(error.message);
+        knownCodes.add(code);
+        result.updated++;
+        log(`  ✅ Stock updated (photos/details left as set in admin)`);
+        continue;
+      }
+
+      if (knownCodes.has(code)) {
+        // Seen before but no longer on the site → deleted in admin. Respect that.
+        result.skipped++;
+        log(`  ⏭️  Not re-created — product was removed in the admin panel`);
+        continue;
+      }
+
+      // Brand-new code → create it once, with its Drive photos
       const driveFiles = imageMap.get(code) ?? [];
       const imageUrls: string[] = [];
-
       if (driveFiles.length > 0) {
         log(`  📸 Uploading ${driveFiles.length} image(s)...`);
         for (let i = 0; i < driveFiles.length; i++) {
@@ -134,20 +212,12 @@ export async function runGoogleSync(
         log(`  ⚠️  No images found in Drive for ${code}`);
       }
 
-      // Find category from pre-derived slug
       const catSlug = slugify(product.category);
       const category: Category | undefined = categoryMap.get(catSlug) ??
         catList.find(c =>
           c.name.toLowerCase().includes(product.category.toLowerCase())
         );
 
-      // Sizes & stock already parsed from master sheet
-      const sizes     = product.sizes;   // [{size, stock}]
-      const totalStock = product.total_stock;
-
-      // Build product record
-      // Slug = product_code (e.g. ss-t-001) — unique, stable, used for dedup
-      const slug = slugify(code);
       const record: Record<string, unknown> = {
         name:             product.name || code,
         slug,
@@ -157,8 +227,8 @@ export async function runGoogleSync(
         category:         product.category || "uncategorized",
         category_id:      category?.id ?? null,
         images:           imageUrls,
-        sizes:            sizes,
-        stock_quantity:   totalStock,
+        sizes:            product.sizes,
+        stock_quantity:   product.total_stock,
         is_active:        product.is_active,
         is_featured:      product.is_featured,
         is_new_arrival:   product.is_new_arrival,
@@ -166,58 +236,23 @@ export async function runGoogleSync(
         meta_title:       product.meta_title || product.name,
         meta_description: product.meta_description,
         updated_at:       new Date().toISOString(),
+        product_code:     code,
       };
 
-      // Try to add product_code if column exists (graceful — won't break if missing)
-      (record as Record<string, unknown>).product_code = code;
-
-      // Check if product exists by slug (stable unique key = product code)
-      const { data: existing } = await supabase
-        .from("products")
-        .select("id, images, slug")
-        .eq("slug", slug)
-        .maybeSingle();
-
-      if (existing) {
-        // Update but keep existing images if no new ones uploaded
-        const finalImages = imageUrls.length > 0 ? imageUrls : (existing.images ?? []);
-        const updateRecord = { ...record, images: finalImages };
-        const { error } = await supabase
-          .from("products")
-          .update(updateRecord)
-          .eq("slug", slug);
-
-        // If product_code column doesn't exist, retry without it
-        if (error?.message?.includes("product_code")) {
-          delete (updateRecord as Record<string, unknown>).product_code;
-          const { error: e2 } = await supabase.from("products").update(updateRecord).eq("slug", slug);
+      const { error } = await supabase.from("products").insert(record);
+      if (error) {
+        // If product_code column missing, retry without it
+        if (error.message.includes("product_code")) {
+          const r2 = { ...record }; delete r2.product_code;
+          const { error: e2 } = await supabase.from("products").insert(r2);
           if (e2) throw new Error(e2.message);
-        } else if (error) {
+        } else {
           throw new Error(error.message);
         }
-
-        result.updated++;
-        log(`  ✅ Updated`);
-      } else {
-        const { error } = await supabase.from("products").insert(record);
-        if (error) {
-          // If product_code column missing, retry without it
-          if (error.message.includes("product_code")) {
-            const r2 = { ...record }; delete r2.product_code;
-            const { error: e2 } = await supabase.from("products").insert(r2);
-            if (e2) throw new Error(e2.message);
-          } else if (error.message.includes("slug")) {
-            // Slug conflict fallback
-            const r2 = { ...record, slug: `${slug}-${Date.now()}` };
-            const { error: e2 } = await supabase.from("products").insert(r2);
-            if (e2) throw new Error(e2.message);
-          } else {
-            throw new Error(error.message);
-          }
-        }
-        result.created++;
-        log(`  ✅ Created`);
       }
+      knownCodes.add(code);
+      result.created++;
+      log(`  ✅ Created (new product code)`);
     } catch (e: any) {
       result.skipped++;
       result.errors.push(`[${code}] ${e.message}`);
@@ -225,6 +260,8 @@ export async function runGoogleSync(
     }
   }
 
-  log(`\n✅ Sync complete — ${result.created} created, ${result.updated} updated, ${result.imagesUploaded} images uploaded, ${result.skipped} skipped`);
+  await writeKnownCodes(supabase, knownCodes);
+
+  log(`\n✅ Sync complete — ${result.created} created, ${result.updated} stock-updated, ${result.imagesUploaded} images uploaded, ${result.skipped} skipped`);
   return result;
 }
