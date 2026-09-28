@@ -70,8 +70,10 @@ export const getCachedMarketingSettings = unstable_cache(
 export const getCachedHomeProducts = unstable_cache(
   async () => {
     const db = getPublicClient();
-    const [newArrivalsRes, featuredRes, bestSellersRes, reviewsRes, settingsRes] =
+    const [allProductsRes, newArrivalsRes, featuredRes, bestSellersRes, reviewsRes, settingsRes] =
       await Promise.all([
+        // Same order as the shop page's default ("Newest"), so View All continues the list
+        db.from("products").select(PRODUCT_COLS).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
         db.from("products").select(PRODUCT_COLS).eq("is_new_arrival", true).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
         db.from("products").select(PRODUCT_COLS).eq("is_featured", true).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
         db.from("products").select(PRODUCT_COLS).eq("is_best_seller", true).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
@@ -79,6 +81,7 @@ export const getCachedHomeProducts = unstable_cache(
         db.from("site_settings").select("*").eq("id", 1).single(),
       ]);
     return {
+      allProducts:  (allProductsRes.data  as Product[]) || [],
       newArrivals:  (newArrivalsRes.data  as Product[]) || [],
       featured:     (featuredRes.data     as Product[]) || [],
       bestSellers:  (bestSellersRes.data  as Product[]) || [],

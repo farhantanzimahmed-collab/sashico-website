@@ -1,21 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface HeroVideoProps {
   /** Admin-configured video URL (Settings → Hero → Video) */
   src: string;
 }
 
-// The bundled home reel ships in two sizes + a poster frame. Any other URL set in
-// admin is played as-is.
-const REEL_720 = "/videos/home-reel-720.mp4";
-const REEL_540 = "/videos/home-reel-540.mp4";
-const REEL_POSTER = "/videos/home-reel-poster.jpg";
+// The bundled home reel ships as two cuts of the same footage:
+//  - phones:  full vertical 9:16 reel (540p)
+//  - desktop: a landscape band cut from the original 1080p (faces + outfits),
+//    so it fills a wide screen edge-to-edge without upscaling a vertical video
+// Any other URL set in admin is played as-is on all screens.
+const REEL = {
+  mobile: "/videos/home-reel-540.mp4",
+  mobilePoster: "/videos/home-reel-poster.jpg",
+  desktop: "/videos/home-reel-desktop.mp4",
+  desktopPoster: "/videos/home-reel-desktop-poster.jpg",
+};
 
 export default function HeroVideo({ src }: HeroVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
-  const isBundledReel = src === REEL_720 || src === REEL_540;
+  const [playing, setPlaying] = useState(false);
+  const isBundledReel = src.startsWith("/videos/home-reel");
 
   useEffect(() => {
     const video = ref.current;
@@ -26,11 +33,11 @@ export default function HeroVideo({ src }: HeroVideoProps) {
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
     if (reduceMotion || saveData) return;
 
-    // Attach the source only after the page has loaded, so the reel never
+    // Attach the source only after the page has loaded so the reel never
     // competes with the page itself for bandwidth (poster shows meanwhile)
     const start = () => {
       const desktop = window.matchMedia("(min-width: 1024px)").matches;
-      video.src = isBundledReel ? (desktop ? REEL_720 : REEL_540) : src;
+      video.src = isBundledReel ? (desktop ? REEL.desktop : REEL.mobile) : src;
       video.play().catch(() => {
         // Autoplay blocked (e.g. iOS Low Power Mode) — poster stays visible
       });
@@ -42,32 +49,40 @@ export default function HeroVideo({ src }: HeroVideoProps) {
 
   return (
     <>
-      {/* Desktop only: soft blurred frame of the reel fills the wide background */}
+      {/* Poster: right crop per screen, visible until the first video frame plays */}
       {isBundledReel && (
-        <div
-          aria-hidden
-          className="absolute inset-0 hidden lg:block bg-cover bg-center scale-110"
-          style={{ backgroundImage: "url(/videos/home-reel-blur.jpg)" }}
-        />
+        <picture>
+          <source media="(min-width: 1024px)" srcSet={REEL.desktopPoster} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={REEL.mobilePoster}
+            alt=""
+            aria-hidden
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </picture>
       )}
-      <div aria-hidden className="absolute inset-0 hidden lg:block bg-black/45" />
 
-      {/* Mobile: full-bleed vertical reel. Desktop: tall 9:16 panel on the right. */}
+      {/* Full-bleed on every screen size */}
       <video
         ref={ref}
-        poster={isBundledReel ? REEL_POSTER : undefined}
         muted
         loop
         playsInline
         preload="none"
         aria-label="Sashico lookbook reel"
-        className="absolute inset-0 h-full w-full object-cover
-                   lg:inset-auto lg:right-[7vw] lg:top-[calc(50%+3rem)] lg:-translate-y-1/2
-                   lg:h-[74vh] lg:w-auto lg:aspect-[9/16] lg:rounded-xl lg:shadow-2xl lg:ring-1 lg:ring-white/10"
+        onPlaying={() => setPlaying(true)}
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+          playing || !isBundledReel ? "opacity-100" : "opacity-0"
+        }`}
       />
 
-      {/* Mobile readability: darken only the lower part where the headline sits */}
-      <div aria-hidden className="absolute inset-0 lg:hidden bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
+      {/* Readability: darker behind the headline (bottom on phones, left on desktop) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 lg:bg-gradient-to-r lg:from-black/70 lg:via-black/25 lg:to-black/10"
+      />
     </>
   );
 }

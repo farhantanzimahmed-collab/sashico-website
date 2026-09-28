@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
 import Hero from "@/components/home/Hero";
 import ProductSection from "@/components/home/ProductSection";
 import Reviews from "@/components/home/Reviews";
@@ -50,7 +49,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
 
 export default async function HomePage() {
   // Single cached call — all concurrent visitors share this result
-  const { settings, newArrivals, featured, bestSellers, reviews } =
+  const { settings, allProducts, newArrivals, featured, reviews } =
     await getCachedHomeProducts();
 
   const siteSettings = settings || DEFAULT_SETTINGS;
@@ -73,35 +72,16 @@ export default async function HomePage() {
     <>
       <Hero settings={siteSettings} featuredImages={heroImages} />
 
-      {/* Shop CTA */}
-      <section className="py-12 flex justify-center border-b border-black/8">
-        <Link
-          href="/shop"
-          className="px-12 py-4 bg-black text-white label-xs tracking-widest hover:bg-brand-gray-800 transition-colors"
-        >
-          SHOP ALL
-        </Link>
-      </section>
-
-      {newArrivals.length > 0 && (
+      {allProducts.length > 0 && (
         <ProductSection
-          title="New Arrivals"
-          subtitle="Fresh drops, straight from the studio"
-          products={newArrivals}
-          viewAllHref="/shop?filter=new"
+          title="Shop All"
+          subtitle="The full Sashico collection"
+          products={allProducts}
+          viewAllHref="/shop"
+          viewAllLabel="View All Products"
           index={1}
+          bottomButtonOnDesktop
         />
-      )}
-      {bestSellers.length > 0 && (
-        <Suspense fallback={null}>
-          <ProductSection
-            title="Best Sellers"
-            subtitle="What the community loves most"
-            products={bestSellers}
-            viewAllHref="/shop?filter=bestseller"
-            index={3}
-          />
-        </Suspense>
       )}
       <Suspense fallback={null}>
         <Reviews reviews={reviews} />

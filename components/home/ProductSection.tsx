@@ -10,6 +10,8 @@ interface ProductSectionProps {
   viewAllHref?: string;
   viewAllLabel?: string;
   index?: number;
+  /** Show the "View All" button under the grid on desktop too (default: mobile only) */
+  bottomButtonOnDesktop?: boolean;
 }
 
 export default function ProductSection({
@@ -19,6 +21,7 @@ export default function ProductSection({
   viewAllHref = "/shop",
   viewAllLabel = "View All",
   index = 1,
+  bottomButtonOnDesktop = false,
 }: ProductSectionProps) {
   if (products.length === 0) return null;
 
@@ -57,7 +60,7 @@ export default function ProductSection({
         </div>
 
         {/* Mobile view all */}
-        <div className="mt-10 text-center sm:hidden">
+        <div className={`mt-10 text-center ${bottomButtonOnDesktop ? "" : "sm:hidden"}`}>
           <Link href={viewAllHref} className="btn-outline inline-flex">
             {viewAllLabel}
             <ArrowRight className="h-3.5 w-3.5" />
