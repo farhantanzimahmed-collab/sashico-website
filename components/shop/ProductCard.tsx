@@ -105,7 +105,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none z-10">
           {hasDiscount && (
-            <span className="label-xs bg-red-500 text-white px-2.5 py-1 rounded font-bold">−{discount}%</span>
+            <span className="label-xs bg-red-600 text-white px-2.5 py-1 rounded font-bold">−{discount}%</span>
           )}
           {!inStock && (
             <span className="label-xs bg-brand-gray-200 text-brand-gray-600 px-2.5 py-1 rounded">Sold Out</span>
@@ -150,13 +150,13 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </Link>
         <div className="flex items-center gap-2.5 mt-1.5">
           <span
-            className={`text-sm font-bold ${hasDiscount ? "text-red-500" : "text-black"}`}
+            className={`text-sm font-bold ${hasDiscount ? "text-red-600" : "text-black"}`}
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {formatPrice(price)}
           </span>
           {hasDiscount && (
-            <span className="text-xs text-brand-gray-400 line-through" style={{ fontVariantNumeric: "tabular-nums" }}>
+            <span className="text-xs text-brand-gray-500 line-through" style={{ fontVariantNumeric: "tabular-nums" }}>
               {formatPrice(product.price)}
             </span>
           )}

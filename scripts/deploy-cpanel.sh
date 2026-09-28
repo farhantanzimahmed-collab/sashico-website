@@ -76,7 +76,7 @@ if [ -d $REMOTE_APP ]; then
 fi
 mv ${REMOTE_APP}-staging $REMOTE_APP
 mkdir -p $REMOTE_APP/tmp && touch $REMOTE_APP/tmp/restart.txt
-cloudlinux-selector restart --json --interpreter nodejs --app-root $REMOTE_APP >/dev/null
+cloudlinux-selector restart --json --interpreter nodejs --app-root $REMOTE_APP </dev/null >/dev/null 2>&1 || true
 # Let Apache serve static assets straight from the docroot (bypasses Node on the
 # 1-CPU plan). Cache/gzip headers for these live in ~/public_html/.htaccess.
 mkdir -p ~/public_html/_next && ln -sfn ~/$REMOTE_APP/.next/static ~/public_html/_next/static

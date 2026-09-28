@@ -88,7 +88,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <span className="label-xs border border-brand-gray-200 text-brand-gray-600 px-2.5 py-1 rounded">Best Seller</span>
         )}
         {hasDiscount && (
-          <span className="label-xs bg-red-500 text-white px-2.5 py-1 rounded font-bold">SALE</span>
+          <span className="label-xs bg-red-600 text-white px-2.5 py-1 rounded font-bold">SALE</span>
         )}
       </div>
 
@@ -100,15 +100,15 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* Price */}
       <div className="space-y-1.5">
         <div className="flex items-baseline gap-3 flex-wrap">
-          <span className={`text-4xl font-bold ${hasDiscount ? "text-red-500" : "text-black"}`}>
+          <span className={`text-4xl font-bold ${hasDiscount ? "text-red-600" : "text-black"}`}>
             {formatPrice(price)}
           </span>
           {hasDiscount && (
             <>
-              <span className="text-xl text-brand-gray-400 line-through">
+              <span className="text-xl text-brand-gray-500 line-through">
                 {formatPrice(product.price)}
               </span>
-              <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded">
+              <span className="inline-flex items-center bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded">
                 −{discount}% OFF
               </span>
             </>
@@ -116,7 +116,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </div>
         {hasDiscount && (
           <p className="text-sm text-brand-gray-500">
-            You save <span className="font-semibold text-red-500">{formatPrice(product.price - product.discount_price!)}</span>
+            You save <span className="font-semibold text-red-600">{formatPrice(product.price - product.discount_price!)}</span>
           </p>
         )}
         <p className="text-xs text-brand-gray-400">
@@ -208,7 +208,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             );
           })}
         </div>
-        {sizeError && <p className="mt-2 text-xs text-red-500">Please select a size</p>}
+        {sizeError && <p className="mt-2 text-xs text-red-600">Please select a size</p>}
       </div>
 
       {/* Quantity */}

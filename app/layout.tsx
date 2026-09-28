@@ -103,8 +103,6 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdScript(siteJsonLd(siteSettings)) }}
         />
-        {/* Preload navbar logo — it's the first render-visible branded element */}
-        <link rel="preload" href="/sashico-logo.png" as="image" type="image/png" />
         {/* Critical-path preconnects — reduce connection overhead on mobile */}
         <link rel="preconnect" href="https://kkvybxtgpczbomjesfxs.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://kkvybxtgpczbomjesfxs.supabase.co" />

@@ -65,11 +65,13 @@ export default function TrackingScripts({ settings }: TrackingScriptsProps) {
       {/* Google Analytics 4 */}
       {settings.ga4_enabled && settings.ga4_id && !settings.gtm_enabled && (
         <>
+          {/* lazyOnload: GA's 170 KB library loads after the page is interactive,
+              keeping it off the mobile critical path. Events queue in dataLayer. */}
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${settings.ga4_id}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
-          <Script id="ga4" strategy="afterInteractive">
+          <Script id="ga4" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

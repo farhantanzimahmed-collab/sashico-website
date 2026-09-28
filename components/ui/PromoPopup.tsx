@@ -12,17 +12,44 @@ export default function PromoPopup() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Delay slightly so page renders first
-    const timer = setTimeout(() => {
-      if (!sessionStorage.getItem(SESSION_KEY)) {
-        setVisible(true);
-      }
-    }, 800);
-    return () => clearTimeout(timer);
+    try {
+      if (sessionStorage.getItem(SESSION_KEY)) return;
+    } catch {
+      return;
+    }
+
+    // Open on the visitor's first scroll (or desktop exit-intent), not on a load
+    // timer. A timed popup became the page's Largest Contentful Paint and pushed
+    // mobile LCP to ~8s; after interaction it can't affect LCP, and the image is
+    // pre-fetched during idle time so it still appears instantly.
+    let opened = false;
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      cleanup();
+      setVisible(true);
+    };
+    const onScroll = () => { if (window.scrollY > 150) open(); };
+    const onMouseOut = (e: MouseEvent) => { if (!e.relatedTarget && e.clientY <= 0) open(); };
+    function cleanup() {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("mouseout", onMouseOut);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("mouseout", onMouseOut);
+
+    const idle = (cb: () => void) =>
+      typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(cb) : setTimeout(cb, 2500);
+    idle(() => {
+      const img = new window.Image();
+      img.src = "/_next/image?url=%2Fpromo-70-off.png&w=640&q=75";
+    });
+
+    return cleanup;
   }, []);
 
   function close() {
-    sessionStorage.setItem(SESSION_KEY, "1");
+    try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
     setVisible(false);
   }
 
@@ -56,6 +83,7 @@ export default function PromoPopup() {
             alt="Sashico — Up to 70% off all items"
             width={2160}
             height={2160}
+            sizes="(max-width: 560px) 92vw, 520px"
             className="w-full h-auto block cursor-pointer"
           />
         </Link>

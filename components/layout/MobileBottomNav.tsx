@@ -69,7 +69,7 @@ export default function MobileBottomNav() {
           const active = isActive(href) && href !== "#";
           const cls = cn(
             "flex flex-col items-center gap-0.5 px-3 py-1.5 relative transition-colors",
-            active ? "text-black" : "text-brand-gray-400"
+            active ? "text-black" : "text-brand-gray-500"
           );
           const inner = (
             <>
