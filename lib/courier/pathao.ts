@@ -163,11 +163,16 @@ export async function getPathaoOrderInfo(consignmentId: string) {
  * processing, shipped, delivered, cancelled). Returns null = no change.
  */
 export function mapPathaoStatus(pathaoStatus: string): { order_status?: string; payment_status?: string } | null {
-  const s = pathaoStatus.toLowerCase().replace(/[\s-]+/g, "_");
-  if (/partial_delivery|delivered/.test(s) && !/delivery_failed|undelivered/.test(s)) return { order_status: "delivered" };
-  if (/payment_invoice|paid/.test(s)) return { payment_status: "paid" };
-  if (/return|cancel|delivery_failed|undelivered|lost/.test(s)) return { order_status: "cancelled" };
-  if (/picked|sorting|transit|hub|assigned_for_delivery|on_hold|out_for_delivery/.test(s)) return { order_status: "shipped" };
+  // Accepts webhook events ("order.paid-return") and status names ("Paid Return")
+  const s = pathaoStatus.toLowerCase().replace(/^order\./, "").replace(/[\s.-]+/g, "_");
+  // Attempts that Pathao can retry — log only, don't change the order yet
+  if (/pickup_failed|delivery_failed|exchange/.test(s)) return null;
+  // Any kind of return (incl. "paid return", "returned to merchant") = not delivered
+  if (/return/.test(s)) return { order_status: "cancelled" };
+  if (/pickup_cancel|cancel/.test(s)) return { order_status: "cancelled" };
+  if (/partial_delivery|delivered/.test(s)) return { order_status: "delivered" };
+  if (/payment_invoice|^paid$/.test(s)) return { payment_status: "paid" };
   if (/pending|pickup_requested|assigned_for_pickup/.test(s)) return { order_status: "processing" };
-  return null;
+  if (/^pickup$|picked|sorting|transit|hub|assigned_for_delivery|on_hold|out_for_delivery/.test(s)) return { order_status: "shipped" };
+  return null; // order created/updated, store events, etc.
 }
