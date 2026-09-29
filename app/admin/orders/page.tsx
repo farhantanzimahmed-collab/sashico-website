@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { summarizeHistory, RISK_STYLES } from "@/lib/customerHistory";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Order } from "@/lib/types";
@@ -77,6 +78,17 @@ export default async function AdminOrdersPage() {
                       <td className="px-5 py-4">
                         <p className="text-sm font-sans text-brand-black">{order.customer_name}</p>
                         <p className="text-2xs text-brand-gray-400 font-sans">{order.customer_phone}</p>
+                        {(() => {
+                          // COD fraud check — this phone's history on other orders
+                          const h = summarizeHistory(order.customer_phone, orders, order.id);
+                          if (h.risk === "new") return null;
+                          const r = RISK_STYLES[h.risk];
+                          return (
+                            <span className={`mt-1 inline-block px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${r.className}`}>
+                              {r.label} · {h.successRate}%
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-5 py-4 text-sm font-sans text-brand-gray-600 text-center">
                         {itemCount}

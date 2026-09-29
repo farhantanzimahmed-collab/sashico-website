@@ -6,6 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { Order } from "@/lib/types";
 import { formatPrice, formatDate, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS, getImageUrl } from "@/lib/utils";
 import OrderStatusUpdater from "./OrderStatusUpdater";
+import PathaoPanel from "./PathaoPanel";
+import { serviceClient } from "@/lib/adminAuth";
+import { readPathaoConfig } from "@/lib/courier/pathao";
+import { summarizeHistory, RISK_STYLES } from "@/lib/customerHistory";
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -30,6 +34,13 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   if (!order) notFound();
 
   const o = order as Order;
+
+  // Fraud check: this phone's track record across all Sashico orders
+  const { data: phoneOrders } = await serviceClient().from("orders").select("id, customer_phone, order_status, order_number, created_at").order("created_at", { ascending: false });
+  const history = summarizeHistory(o.customer_phone, phoneOrders || [], o.id);
+  const risk = RISK_STYLES[history.risk];
+  const pathaoConfig = await readPathaoConfig().catch(() => null);
+  const { data: statusLog } = await serviceClient().from("order_status_history").select("status, notes, changed_at, changed_by").eq("order_id", o.id).order("changed_at", { ascending: false }).limit(10);
   const orderStatus = ORDER_STATUS_LABELS[o.order_status];
   const paymentStatus = PAYMENT_STATUS_LABELS[o.payment_status];
 
@@ -120,6 +131,30 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             </div>
           </div>
 
+          {/* Courier */}
+          <div className="bg-white border border-brand-gray-100 p-6">
+            <h2 className="text-sm font-sans font-semibold uppercase tracking-wider text-brand-black mb-5">
+              Courier — Pathao
+            </h2>
+            <PathaoPanel
+              orderId={o.id}
+              consignmentId={o.tracking_number ?? null}
+              district={o.shipping_address?.district || (o.shipping_address as { division?: string })?.division || ""}
+              area={o.shipping_address?.city || ""}
+              codAmount={o.payment_method === "cod" && o.payment_status !== "paid" ? o.total_amount : 0}
+              defaultWeight={pathaoConfig?.default_weight}
+            />
+            {statusLog && statusLog.length > 0 && (
+              <ul className="mt-5 pt-4 border-t border-brand-gray-100 space-y-1.5 text-xs font-sans text-brand-gray-600">
+                {statusLog.map((h, i) => (
+                  <li key={i}>
+                    <span className="text-brand-gray-400">{formatDate(h.changed_at)}</span> · {h.notes || h.status}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {/* Update Status */}
           <div className="bg-white border border-brand-gray-100 p-6">
             <h2 className="text-sm font-sans font-semibold uppercase tracking-wider text-brand-black mb-5">
@@ -137,6 +172,19 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             </h2>
             <div className="space-y-3 text-sm font-sans">
               <p className="font-medium text-brand-black">{o.customer_name}</p>
+              {/* COD fraud check */}
+              <div className="border border-brand-gray-100 p-3 space-y-1.5">
+                <span className={`inline-block px-2 py-0.5 text-2xs uppercase tracking-wider ${risk.className}`}>{risk.label}</span>
+                {history.total === 0 ? (
+                  <p className="text-xs text-brand-gray-600">First order from this phone number.</p>
+                ) : (
+                  <p className="text-xs text-brand-gray-600">
+                    {history.total} previous order{history.total > 1 ? "s" : ""}: {history.delivered} delivered · {history.cancelled} cancelled/returned
+                    {history.inProgress ? ` · ${history.inProgress} in progress` : ""}
+                    {history.successRate !== null && <> · <strong className="text-brand-black">{history.successRate}% success</strong></>}
+                  </p>
+                )}
+              </div>
               <a href={`mailto:${o.customer_email}`} className="text-brand-gray-600 hover:text-brand-black transition-colors block">
                 {o.customer_email}
               </a>

@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Send,
   RefreshCw,
+  Truck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tag },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { href: "/admin/courier", label: "Courier", icon: Truck },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },
   { href: "/admin/contacts", label: "Messages", icon: MessageSquare },
