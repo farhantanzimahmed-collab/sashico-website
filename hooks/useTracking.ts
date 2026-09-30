@@ -12,6 +12,13 @@ async function sendCAPI(
 ) {
   try {
     const { fbc, fbp } = getFbCookies();
+    // Meta's `contents` format: id, quantity, item_price only (names are GA4-only)
+    if (Array.isArray(customData.contents)) {
+      customData = {
+        ...customData,
+        contents: (customData.contents as TrackingContent[]).map(({ id, quantity, item_price }) => ({ id, quantity, item_price })),
+      };
+    }
     await fetch("/api/capi", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,6 +52,9 @@ export interface TrackingContent {
   id: string;
   quantity: number;
   item_price: number;
+  /** GA4 only (stripped before Meta) */
+  name?: string;
+  category?: string;
 }
 
 interface TrackingEvent {
@@ -97,29 +107,50 @@ export function useTracking() {
       ...data,
     };
 
+    // Meta gets its standard `contents` shape only (id, quantity, item_price)
+    const metaData = data.contents
+      ? { ...eventData, contents: data.contents.map(({ id, quantity, item_price }) => ({ id, quantity, item_price })) }
+      : eventData;
+
     // Meta Pixel — fire once, with eventId when provided for CAPI deduplication
     whenReady(() => !!window.fbq, () => {
       if (eventId) {
-        window.fbq!("track", type, eventData, { eventID: eventId });
+        window.fbq!("track", type, metaData, { eventID: eventId });
       } else {
-        window.fbq!("track", type, eventData);
+        window.fbq!("track", type, metaData);
       }
     });
 
-    // Google Analytics 4
-    whenReady(() => !!window.gtag, () => {
-      const gaEventMap: Record<string, string> = {
-        PageView: "page_view",
-        ViewContent: "view_item",
-        AddToCart: "add_to_cart",
-        InitiateCheckout: "begin_checkout",
-        Purchase: "purchase",
-        Lead: "generate_lead",
-        Contact: "contact",
-      };
-      const gaEvent = gaEventMap[type] || type.toLowerCase();
-      window.gtag!("event", gaEvent, eventData);
-    });
+    // Google Analytics 4 — ecommerce events need an `items` array (and
+    // `transaction_id` for purchases) or GA4's product/revenue reports stay empty.
+    // PageView is NOT sent: GA4 enhanced measurement already records SPA page
+    // changes, so sending it here double-counted every in-site navigation.
+    if (type !== "PageView") {
+      whenReady(() => !!window.gtag, () => {
+        const gaEventMap: Record<string, string> = {
+          ViewContent: "view_item",
+          AddToCart: "add_to_cart",
+          InitiateCheckout: "begin_checkout",
+          Purchase: "purchase",
+          Lead: "generate_lead",
+          Contact: "contact",
+        };
+        const gaEvent = gaEventMap[type] || type.toLowerCase();
+        const items = data.contents?.map((c) => ({
+          item_id: c.id,
+          item_name: c.name || data.content_name,
+          item_category: c.category || data.content_category,
+          price: c.item_price,
+          quantity: c.quantity,
+        }));
+        window.gtag!("event", gaEvent, {
+          currency: eventData.currency,
+          ...(data.value !== undefined ? { value: data.value } : {}),
+          ...(data.order_id ? { transaction_id: data.order_id } : {}),
+          ...(items?.length ? { items } : {}),
+        });
+      });
+    }
 
     // Google Tag Manager via dataLayer
     if (typeof window !== "undefined" && window.dataLayer) {

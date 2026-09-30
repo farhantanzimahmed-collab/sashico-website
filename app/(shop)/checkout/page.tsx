@@ -117,7 +117,7 @@ export default function CheckoutPage() {
       checkoutTracked.current = true;
       trackBeginCheckout(
         grandTotal,
-        items.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price }))
+        items.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price, name: i.product_name }))
       );
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
             orderId: order.order_number,
             value: grandTotal,
             numItems: items.reduce((s, i) => s + i.quantity, 0),
-            contents: items.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price })),
+            contents: items.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price, name: i.product_name })),
             email: data.email,
             phone: data.phone,
             name: data.full_name,
