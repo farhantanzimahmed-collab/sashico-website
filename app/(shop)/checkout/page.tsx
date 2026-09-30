@@ -198,7 +198,9 @@ export default function CheckoutPage() {
       setOrderPlaced(true);
       try { localStorage.removeItem("sashico_checkout_session"); } catch {}
       clearCart();
-      router.push(`/checkout/success?order=${order.order_number}`);
+      try { sessionStorage.setItem("sashico_last_order", order.order_number); } catch {}
+      // Constant thank-you URL (no ?order=) so Meta/GA URL rules match every purchase
+      router.push("/checkout/success");
     } catch (err: any) {
       toast.error(err.message || "Failed to place order. Please try again.");
     } finally {

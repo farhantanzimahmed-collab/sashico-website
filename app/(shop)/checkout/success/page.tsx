@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCheck, Package, MapPin, Clock, Phone } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -9,36 +9,36 @@ import { useTracking } from "@/hooks/useTracking";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const orderNumber = searchParams.get("order") || "SCO-XXXXXX";
   const { trackPurchase } = useTracking();
+  // The URL is always /checkout/success (constant, for URL-based conversions and
+  // audiences). The order number is handed over by checkout via sessionStorage;
+  // ?order= is still read so older links keep working.
+  const [orderNumber, setOrderNumber] = useState(searchParams.get("order") || "");
 
-  // Fire Purchase exactly once per order, from the page a customer only ever
-  // reaches after a real checkout. Guarded by a localStorage marker (not
-  // sessionStorage) so it survives refreshes, back-button, closing the tab,
-  // or reopening this exact URL again days later — none of those can re-fire it.
+  // Fire Purchase exactly once per order, only after a real checkout handed off
+  // its data. A localStorage marker per order stops refreshes, back-button or
+  // reopening the page from ever re-firing it.
   useEffect(() => {
-    const order = searchParams.get("order");
-    if (!order) return;
-
-    const firedKey = `sashico_purchase_fired_${order}`;
     try {
-      if (localStorage.getItem(firedKey)) return; // already tracked, ever
+      const last = sessionStorage.getItem("sashico_last_order");
+      if (last) setOrderNumber(last);
 
       const raw = sessionStorage.getItem("sashico_pending_purchase");
-      if (!raw) return; // no handoff data (e.g. URL reopened in a new session) — skip rather than guess
-
+      if (!raw) return; // no handoff (page reopened later) — skip rather than guess
       const pending = JSON.parse(raw);
-      if (pending.orderId !== order) return; // stale/unrelated payload — don't misattribute
+      if (!pending.orderId) return;
 
-      trackPurchase(pending.orderId, pending.value, pending.contents ?? [], pending.numItems);
-
-      localStorage.setItem(firedKey, "1");
+      const firedKey = `sashico_purchase_fired_${pending.orderId}`;
+      if (!localStorage.getItem(firedKey)) {
+        trackPurchase(pending.orderId, pending.value, pending.contents ?? [], pending.numItems);
+        localStorage.setItem(firedKey, "1");
+      }
       sessionStorage.removeItem("sashico_pending_purchase");
     } catch {
       // storage unavailable — nothing to do; no crash, no bogus fire
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
   return (
     <div className="pt-28 pb-24 min-h-screen bg-white">
@@ -63,7 +63,7 @@ function SuccessContent() {
         <div className="bg-brand-gray-50 border border-brand-gray-100 p-6 text-center mb-6">
           <p className="label-xs text-brand-gray-400 mb-2">Your Order Number</p>
           <p className="display-heading text-[2rem] text-brand-black tracking-widest">
-            {orderNumber}
+            {orderNumber || "Confirmed"}
           </p>
           <p className="text-xs font-sans text-brand-gray-400 mt-2">
             Save this number to track your order
