@@ -56,6 +56,9 @@ export default function MobileBottomNav() {
     return pathname.startsWith(href.split("?")[0]);
   };
 
+  // Product pages show a sticky Add-to-Cart bar in this spot instead
+  if (/^\/shop\/[^/]+$/.test(pathname)) return null;
+
   return (
     <nav
       className={cn(

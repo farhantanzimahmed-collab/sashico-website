@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import ChatButtons from "@/components/ui/ChatButtons";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Heart, Share2, Ruler, ChevronDown, ChevronUp, Truck, ShieldCheck } from "lucide-react";
 import { Product } from "@/lib/types";
@@ -40,7 +42,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const price = product.discount_price ?? product.price;
   const hasDiscount = !!product.discount_price && product.discount_price < product.price;
   const discount = hasDiscount ? getDiscountPercentage(product.price, product.discount_price!) : 0;
-  const inStock = product.stock_quantity > 0;
+  const inStock = product.sizes?.length ? product.sizes.some((s) => s.stock > 0) : product.stock_quantity > 0;
   const sizeChart = getProductSizeChart(product);
   // Beanies/bags come in one size — show "Free Size" instead of a picker + chart
   const isFreeSize =
@@ -50,10 +52,37 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     ? sizeChart.rows.filter((r) => product.sizes.length === 0 || product.sizes.some((s) => s.size.toUpperCase() === r.size.toUpperCase()))
     : [];
 
+  // Mobile sticky Add-to-Cart: show once the main button has scrolled out of view
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const sizeRef = useRef<HTMLDivElement>(null);
+  const [ctaVisible, setCtaVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      const el = ctaRef.current;
+      // Hidden while the main button is on screen or still below it
+      if (el) setCtaVisible(el.getBoundingClientRect().bottom > 0);
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(check); };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   function handleAddToCart() {
     if (!selectedSize) {
       setSizeError(true);
       setTimeout(() => setSizeError(false), 2000);
+      // From the sticky bar, bring the size buttons into view
+      sizeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     setAddingToCart(true);
@@ -170,7 +199,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       )}
 
       {/* Size selection */}
-      <div>
+      <div ref={sizeRef}>
         <div className="flex items-center justify-between mb-4">
           <p className="label-xs text-black">
             Size
@@ -289,7 +318,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       </div>
 
       {/* CTA buttons */}
-      <div className="flex gap-3">
+      <div ref={ctaRef} className="flex gap-3">
         <button
           onClick={handleAddToCart}
           disabled={!inStock || addingToCart}
@@ -320,6 +349,45 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <Share2 className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Talk to a human before ordering (WhatsApp / Messenger) */}
+      <ChatButtons
+        message={`Hi Sashico! I have a question about "${product.name}" — https://sashico.net/shop/${product.slug}`}
+        refTag={product.slug}
+      />
+
+      {/* Mobile sticky bar — replaces the bottom nav on product pages. Portaled to <body>
+          so a transformed ancestor can't turn position:fixed into page-relative. */}
+      {mounted && createPortal(
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-40 lg:hidden bg-white border-t border-black/10 px-4 pt-3 transition-transform duration-300",
+          ctaVisible ? "translate-y-full" : "translate-y-0"
+        )}
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+        aria-hidden={ctaVisible}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs text-brand-gray-600">
+              {product.name}{selectedSize && !isFreeSize ? ` · ${selectedSize}` : ""}
+            </p>
+            <p className="text-sm font-bold text-black">
+              {formatPrice(price)}
+              {hasDiscount && <span className="ml-2 text-xs font-normal text-brand-gray-500 line-through">{formatPrice(product.price)}</span>}
+            </p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={!inStock || addingToCart}
+            tabIndex={ctaVisible ? -1 : 0}
+            className={cn("btn-primary px-6 py-3.5 shrink-0", (!inStock || addingToCart) && "opacity-50 cursor-not-allowed")}
+          >
+            {!inStock ? "Out of Stock" : addingToCart ? "Adding..." : selectedSize ? "Add to Cart" : "Select Size"}
+          </button>
+        </div>
+      </div>,
+      document.body)}
 
       {/* Trust badges */}
       <div className="grid grid-cols-2 gap-3">

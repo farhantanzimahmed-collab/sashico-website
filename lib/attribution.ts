@@ -6,6 +6,8 @@
  */
 
 const KEY = "sashico_attr";
+// Credit an order to the ad clicked up to 7 days earlier (matches Meta's default click window)
+const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface Attribution {
   utm_source?:   string;
@@ -52,15 +54,22 @@ export function captureAttribution(): void {
     captured_at:  now,
   };
 
-  sessionStorage.setItem(KEY, JSON.stringify(attr));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(attr));
+  } catch {
+    // storage blocked (private mode) — attribution simply isn't kept
+  }
 }
 
 /** Get stored attribution data */
 export function getAttribution(): Attribution {
   if (typeof window === "undefined") return {};
   try {
-    const raw = sessionStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : {};
+    const raw = localStorage.getItem(KEY) ?? sessionStorage.getItem(KEY);
+    if (!raw) return {};
+    const attr: Attribution = JSON.parse(raw);
+    if (attr.captured_at && Date.now() - attr.captured_at > TTL_MS) return {};
+    return attr;
   } catch {
     return {};
   }

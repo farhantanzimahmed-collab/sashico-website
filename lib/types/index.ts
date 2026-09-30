@@ -106,6 +106,11 @@ export interface Review {
   comment: string | null;
   is_approved: boolean;
   created_at: string;
+  /** Customer photos (public URLs) — needs the 2026-09-30 migration */
+  images?: string[];
+  /** Left via a delivered-order review link */
+  verified?: boolean;
+  order_id?: string | null;
 }
 
 export interface MarketingSettings {

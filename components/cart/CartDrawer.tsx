@@ -1,5 +1,6 @@
 "use client";
 
+import FreeShippingProgress from "./FreeShippingProgress";
 import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -134,11 +135,12 @@ export default function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="px-8 py-6 border-t border-black/8 space-y-4">
+            <FreeShippingProgress subtotal={total} />
             <div className="flex justify-between items-center">
               <span className="label-xs text-brand-gray-500">Subtotal</span>
               <span className="text-base font-semibold text-black">{formatPrice(total)}</span>
             </div>
-            <p className="text-xs text-brand-gray-400">Shipping calculated at checkout</p>
+            <p className="text-xs text-brand-gray-500">Delivery charge calculated at checkout</p>
             <Link href="/checkout" onClick={closeCart} className="btn-primary w-full justify-center">
               Checkout
             </Link>

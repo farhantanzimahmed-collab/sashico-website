@@ -1,4 +1,6 @@
 import { Metadata } from "next";
+import Image from "next/image";
+import { fetchApprovedReviews } from "@/lib/reviews";
 import { notFound } from "next/navigation";
 import { createClient as supabaseCreateClient } from "@supabase/supabase-js";
 import ImageGallery from "@/components/product/ImageGallery";
@@ -89,17 +91,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
       .eq("slug", cleanSlug)
       .eq("is_active", true)
       .single(),
-    supabase
-      .from("reviews")
-      .select("id,product_id,customer_name,rating,comment,is_approved,created_at")
-      .eq("is_approved", true)
-      .order("created_at", { ascending: false }),
+    fetchApprovedReviews(supabase),
   ]);
 
   if (!productRes.data) notFound();
 
   const product = productRes.data as Product;
-  const allReviews = (reviewsRes.data as Review[]) || [];
+  const allReviews = reviewsRes as Review[];
   const productReviews = allReviews.filter((r) => r.product_id === product.id);
 
   // Fetch related products
@@ -205,9 +203,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
                         &ldquo;{review.comment}&rdquo;
                       </p>
                     )}
+                    {!!review.images?.length && (
+                      <div className="flex gap-2">
+                        {review.images.map((src) => (
+                          <a key={src} href={src} target="_blank" rel="noopener noreferrer" className="relative block h-24 w-24 overflow-hidden rounded border border-brand-gray-100">
+                            <Image src={src} alt={`Photo from ${review.customer_name}`} fill sizes="96px" className="object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <p className="text-2xs uppercase tracking-wider text-brand-black font-sans font-medium">
                         {review.customer_name}
+                        {review.verified && <span className="ml-2 normal-case tracking-normal text-green-700">✓ Verified buyer</span>}
                       </p>
                       <p className="text-2xs text-brand-gray-400 font-sans">
                         {formatDate(review.created_at)}

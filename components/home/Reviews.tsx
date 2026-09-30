@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Star } from "lucide-react";
 import { Review } from "@/lib/types";
 
@@ -21,15 +22,11 @@ function Stars({ rating, dark = false }: { rating: number; dark?: boolean }) {
   );
 }
 
-const FALLBACK: Partial<Review>[] = [
-  { id: "1", customer_name: "Rahim A.", rating: 5, comment: "The embroidery quality is unmatched. I've bought from many streetwear brands but Sashico stands out completely. Every detail is perfect.", created_at: "" },
-  { id: "2", customer_name: "Priya S.", rating: 5, comment: "Finally a Bangladeshi brand that delivers premium quality. The hoodie I ordered fits perfectly and the embroidery is stunning.", created_at: "" },
-  { id: "3", customer_name: "Tanvir K.", rating: 5, comment: "Ordered twice already. Fast delivery, amazing packaging, and the product speaks for itself. Will definitely order again.", created_at: "" },
-  { id: "4", customer_name: "Sadia M.", rating: 4, comment: "Love the design philosophy. The quality is excellent and the sizing guide was very helpful. Proud to wear Sashico.", created_at: "" },
-];
-
 export default function Reviews({ reviews }: ReviewsProps) {
-  const display = reviews.length > 0 ? reviews : FALLBACK;
+  // Real, approved reviews only — the section stays hidden until the first one is approved
+  const display = reviews.filter((r) => r.comment || r.images?.length);
+  if (display.length === 0) return null;
+  const avg = display.reduce((s, r) => s + (r.rating || 0), 0) / display.length;
 
   return (
     <section className="py-20 lg:py-28 bg-brand-gray-50">
@@ -43,9 +40,9 @@ export default function Reviews({ reviews }: ReviewsProps) {
             </h2>
           </div>
           <div className="text-right">
-            <p className="display-heading text-[4rem] text-black leading-none">4.9</p>
-            <Stars rating={5} />
-            <p className="label-xs text-brand-gray-500 mt-2">{display.length}+ Verified Reviews</p>
+            <p className="display-heading text-[4rem] text-black leading-none">{avg.toFixed(1)}</p>
+            <Stars rating={Math.round(avg)} />
+            <p className="label-xs text-brand-gray-500 mt-2">{display.length} Review{display.length === 1 ? "" : "s"}</p>
           </div>
         </div>
 
@@ -57,12 +54,21 @@ export default function Reviews({ reviews }: ReviewsProps) {
               className="bg-white p-6 flex flex-col gap-4 border border-black/8 rounded-lg hover:border-black/20 transition-colors duration-200"
             >
               <Stars rating={review.rating || 5} />
-              <p className="text-sm text-brand-gray-600 leading-relaxed flex-1 line-clamp-5">
-                &ldquo;{review.comment}&rdquo;
-              </p>
+              {!!review.images?.length && (
+                <div className="relative aspect-square w-full overflow-hidden rounded">
+                  <Image src={review.images[0]} alt={`Photo from ${review.customer_name}`} fill sizes="(max-width: 640px) 90vw, 25vw" className="object-cover" />
+                </div>
+              )}
+              {review.comment && (
+                <p className="text-sm text-brand-gray-600 leading-relaxed flex-1 line-clamp-5">
+                  &ldquo;{review.comment}&rdquo;
+                </p>
+              )}
               <div className="pt-4 border-t border-black/8">
                 <p className="label-xs text-black">{review.customer_name}</p>
-                <p className="text-[10px] text-brand-gray-500 mt-0.5 uppercase tracking-wider">Verified Buyer</p>
+                {review.verified && (
+                  <p className="text-[10px] text-brand-gray-500 mt-0.5 uppercase tracking-wider">Verified Buyer</p>
+                )}
               </div>
             </div>
           ))}

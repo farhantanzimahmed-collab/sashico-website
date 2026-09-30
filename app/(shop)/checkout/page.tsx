@@ -1,5 +1,6 @@
 "use client";
 
+import { whatsappLink, messengerLink } from "@/lib/contact";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,7 +11,7 @@ import { ShieldCheck, Truck, Banknote, MapPin } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice, getImageUrl } from "@/lib/utils";
 import { useTracking } from "@/hooks/useTracking";
-import { getFbCookies } from "@/lib/attribution";
+import { getFbCookies, getAttribution } from "@/lib/attribution";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import toast from "react-hot-toast";
@@ -33,7 +34,10 @@ const SHIPPING_THRESHOLD = 2000;
 const schema = z.object({
   full_name:   z.string().min(2, "Full name is required"),
   email:       z.string().email("Valid email required"),
-  phone:       z.string().min(11, "Valid phone number required"),
+  phone:       z
+    .string()
+    .transform((v) => v.replace(/[\s-]/g, "").replace(/^\+?880/, "0"))
+    .refine((v) => /^01[3-9]\d{8}$/.test(v), "Enter a valid 11-digit mobile number (01XXXXXXXXX)"),
   street:      z.string().min(5, "Street address is required"),
   city:        z.string().min(2, "City / Area is required"),
   division:    z.string().min(1, "Please select your division"),
@@ -61,6 +65,36 @@ export default function CheckoutPage() {
   });
 
   const selectedDivision = watch("division");
+
+  // Abandoned-checkout capture: once a valid phone is typed, save the draft (debounced)
+  // so an unfinished order can be followed up. Cleared when the order is placed.
+  const draft = watch(["full_name", "phone", "email", "street", "city", "district", "division"]);
+  const draftSent = useRef("");
+  useEffect(() => {
+    const [name, rawPhone, email, street, city, district, division] = draft;
+    const phone = (rawPhone || "").replace(/[\s-]/g, "").replace(/^\+?880/, "0");
+    if (!/^01[3-9]\d{8}$/.test(phone) || !items.length || orderPlaced) return;
+    const t = setTimeout(() => {
+      let sessionId = "";
+      try {
+        sessionId = localStorage.getItem("sashico_checkout_session") || crypto.randomUUID();
+        localStorage.setItem("sashico_checkout_session", sessionId);
+      } catch {
+        return;
+      }
+      const payload = JSON.stringify({
+        session_id: sessionId, name, phone, email,
+        address: { street, city, district, division },
+        items, total: total,
+        attribution: getAttribution(),
+      });
+      if (payload === draftSent.current) return;
+      draftSent.current = payload;
+      fetch("/api/checkout/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true }).catch(() => {});
+    }, 2000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(draft), items.length, orderPlaced]);
   const baseShipping = selectedDivision === "Dhaka" ? SHIPPING_DHAKA : selectedDivision ? SHIPPING_OUTSIDE : SHIPPING_DHAKA;
   const finalShipping = total >= SHIPPING_THRESHOLD ? 0 : baseShipping;
   const grandTotal = total + finalShipping;
@@ -126,6 +160,12 @@ export default function CheckoutPage() {
           notes:           data.notes || null,
           // For the server-side Meta Purchase event (matching + attribution)
           tracking: { ...getFbCookies(), eventSourceUrl: window.location.href },
+          // Which ad/campaign brought this customer (UTM + Meta click id), kept 7 days
+          checkout_session: (() => { try { return localStorage.getItem("sashico_checkout_session"); } catch { return null; } })(),
+          attribution: (() => {
+            const a = getAttribution();
+            return a.utm_source || a.fbclid ? a : null;
+          })(),
         }),
       });
 
@@ -156,6 +196,7 @@ export default function CheckoutPage() {
         // will simply have nothing to fire, no crash.
       }
       setOrderPlaced(true);
+      try { localStorage.removeItem("sashico_checkout_session"); } catch {}
       clearCart();
       router.push(`/checkout/success?order=${order.order_number}`);
     } catch (err: any) {
@@ -262,6 +303,12 @@ export default function CheckoutPage() {
             <Button type="submit" loading={submitting} fullWidth size="xl">
               Place Order · {formatPrice(grandTotal)}
             </Button>
+            <p className="text-xs text-center text-brand-gray-500">
+              Need help ordering?{" "}
+              <a href={whatsappLink("Hi Sashico! I need help placing an order.")} target="_blank" rel="noopener noreferrer" className="underline text-black">WhatsApp us</a>
+              {" "}or{" "}
+              <a href={messengerLink("checkout")} target="_blank" rel="noopener noreferrer" className="underline text-black">message us on Messenger</a>
+            </p>
           </form>
 
           {/* Right — order summary */}

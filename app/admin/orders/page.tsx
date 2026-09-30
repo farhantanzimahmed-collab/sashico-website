@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { summarizeHistory, RISK_STYLES } from "@/lib/customerHistory";
+import { sourceLabel, OrderAttribution } from "@/lib/orderSource";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Order } from "@/lib/types";
@@ -39,6 +40,51 @@ export default async function AdminOrdersPage() {
         </div>
       </div>
 
+      {/* Sales by source / campaign — last 30 days, excluding cancelled */}
+      {(() => {
+        const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const rows = new Map<string, { orders: number; revenue: number; delivered: number }>();
+        for (const o of orders) {
+          if (new Date(o.created_at).getTime() < since || o.order_status === "cancelled") continue;
+          const src = sourceLabel((o as Order & { attribution?: OrderAttribution | null }).attribution);
+          const key = src.campaign ? `${src.channel} · ${src.campaign}` : src.channel;
+          const r = rows.get(key) ?? { orders: 0, revenue: 0, delivered: 0 };
+          r.orders += 1;
+          r.revenue += Number(o.total_amount) || 0;
+          if (o.order_status === "delivered") r.delivered += 1;
+          rows.set(key, r);
+        }
+        const list = [...rows.entries()].sort((a, b) => b[1].revenue - a[1].revenue);
+        if (!list.length) return null;
+        return (
+          <div className="bg-white border border-brand-gray-100 mb-6">
+            <p className="px-5 pt-4 text-2xs uppercase tracking-wider text-brand-gray-500 font-sans">Sales by source — last 30 days (excl. cancelled)</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm font-sans">
+                <thead>
+                  <tr className="text-left text-2xs uppercase tracking-wider text-brand-gray-400">
+                    <th className="px-5 py-2 font-medium">Source / campaign</th>
+                    <th className="px-5 py-2 font-medium">Orders</th>
+                    <th className="px-5 py-2 font-medium">Delivered</th>
+                    <th className="px-5 py-2 font-medium">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map(([key, r]) => (
+                    <tr key={key} className="border-t border-brand-gray-100">
+                      <td className="px-5 py-2.5 text-brand-black">{key}</td>
+                      <td className="px-5 py-2.5">{r.orders}</td>
+                      <td className="px-5 py-2.5">{r.delivered}</td>
+                      <td className="px-5 py-2.5">{formatPrice(r.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="bg-white border border-brand-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -74,6 +120,14 @@ export default async function AdminOrdersPage() {
                     >
                       <td className="px-5 py-4 text-sm font-sans font-medium text-brand-black whitespace-nowrap">
                         {order.order_number}
+                        {(() => {
+                          const src = sourceLabel((order as Order & { attribution?: OrderAttribution | null }).attribution);
+                          return (
+                            <p className="text-[10px] font-normal uppercase tracking-wider text-brand-gray-500 mt-0.5">
+                              {src.channel}{src.campaign ? ` · ${src.campaign}` : ""}
+                            </p>
+                          );
+                        })()}
                       </td>
                       <td className="px-5 py-4">
                         <p className="text-sm font-sans text-brand-black">{order.customer_name}</p>

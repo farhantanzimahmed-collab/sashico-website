@@ -10,6 +10,8 @@ import PathaoPanel from "./PathaoPanel";
 import { serviceClient } from "@/lib/adminAuth";
 import { readPathaoConfig } from "@/lib/courier/pathao";
 import { summarizeHistory, RISK_STYLES } from "@/lib/customerHistory";
+import { sourceLabel, OrderAttribution } from "@/lib/orderSource";
+import { reviewUrl } from "@/lib/reviews";
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -205,6 +207,39 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               {o.shipping_address.country}
             </address>
           </div>
+
+          {o.order_status === "delivered" && (() => {
+            const link = reviewUrl(o.id);
+            const first = String(o.customer_name || "").split(" ")[0];
+            const msg = `Hi ${first}! Thank you for shopping with Sashico 🖤 How do you like your order? We'd love a quick review (a photo wearing it would be amazing): ${link}`;
+            const phone = String(o.customer_phone).replace(/\D/g, "").replace(/^0/, "880");
+            return (
+              <div className="bg-white border border-brand-gray-100 p-6">
+                <h2 className="text-sm font-sans font-semibold uppercase tracking-wider text-brand-black mb-3">
+                  Ask for a review
+                </h2>
+                <a href={`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer"
+                  className="inline-block border border-black bg-black text-white px-4 py-2.5 text-2xs uppercase tracking-wider font-sans">
+                  Send review request on WhatsApp
+                </a>
+                <p className="text-xs font-sans text-brand-gray-500 mt-3 break-all">Link: {link}</p>
+              </div>
+            );
+          })()}
+
+          {(() => {
+            const src = sourceLabel((o as Order & { attribution?: OrderAttribution | null }).attribution);
+            return (
+              <div className="bg-white border border-brand-gray-100 p-6">
+                <h2 className="text-sm font-sans font-semibold uppercase tracking-wider text-brand-black mb-3">
+                  Came from
+                </h2>
+                <p className="text-sm font-sans text-brand-black">{src.channel}</p>
+                {src.campaign && <p className="text-xs font-sans text-brand-gray-600 mt-1">Campaign: {src.campaign}</p>}
+                {src.ad && <p className="text-xs font-sans text-brand-gray-600">Ad: {src.ad}</p>}
+              </div>
+            );
+          })()}
 
           <div className="bg-white border border-brand-gray-100 p-6">
             <h2 className="text-sm font-sans font-semibold uppercase tracking-wider text-brand-black mb-3">

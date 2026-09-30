@@ -19,6 +19,8 @@ import {
   Send,
   RefreshCw,
   Truck,
+  ShoppingBag,
+  Star,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -29,6 +31,8 @@ const NAV_ITEMS = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tag },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { href: "/admin/abandoned", label: "Abandoned Carts", icon: ShoppingBag },
+  { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/courier", label: "Courier", icon: Truck },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },

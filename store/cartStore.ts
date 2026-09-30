@@ -83,6 +83,8 @@ export const useCartStore = create<CartState>()(
         typeof window !== "undefined" ? localStorage : sessionStorage
       ),
       skipHydration: true,
+      // Persist only the items — saving isOpen re-opened the drawer on every page load
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );

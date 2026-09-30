@@ -16,6 +16,7 @@ import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import type { SiteSettings, MarketingSettings, Product, Review } from "@/lib/types";
 import { sortByCollection } from "@/lib/collectionOrder";
+import { fetchApprovedReviews } from "@/lib/reviews";
 
 function getPublicClient() {
   return createClient(
@@ -78,7 +79,7 @@ export const getCachedHomeProducts = unstable_cache(
         db.from("products").select(PRODUCT_COLS).eq("is_new_arrival", true).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
         db.from("products").select(PRODUCT_COLS).eq("is_featured", true).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
         db.from("products").select(PRODUCT_COLS).eq("is_best_seller", true).eq("is_active", true).order("created_at", { ascending: false }).limit(12),
-        db.from("reviews").select("id,product_id,customer_name,rating,comment,is_approved,created_at").eq("is_approved", true).order("created_at", { ascending: false }).limit(8),
+        fetchApprovedReviews(db, { limit: 8 }),
         db.from("site_settings").select("*").eq("id", 1).single(),
       ]);
     return {
@@ -86,7 +87,7 @@ export const getCachedHomeProducts = unstable_cache(
       newArrivals:  (newArrivalsRes.data  as Product[]) || [],
       featured:     (featuredRes.data     as Product[]) || [],
       bestSellers:  (bestSellersRes.data  as Product[]) || [],
-      reviews:      (reviewsRes.data      as Review[])  || [],
+      reviews:      reviewsRes,
       settings:     (settingsRes.data     as SiteSettings | null),
     };
   },
