@@ -71,7 +71,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     >
       {/* ── Image ─────────────────────────────────── */}
       <div className="relative overflow-hidden bg-brand-gray-100 aspect-[3/4] rounded-lg">
-        <Link href={`/shop/${product.slug}`} className="block absolute inset-0">
+        <Link prefetch={false} href={`/shop/${product.slug}`} className="block absolute inset-0">
           {mainImage ? (
             <>
               {/* Main image — opacity transition is GPU-composited, avoids layout/paint work */}
@@ -143,7 +143,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
       {/* ── Info ──────────────────────────────────── */}
       <div className="pt-3.5">
-        <Link href={`/shop/${product.slug}`}>
+        <Link prefetch={false} href={`/shop/${product.slug}`}>
           <h3 className="text-sm font-normal text-black hover:text-brand-gray-500 leading-snug">
             {product.name}
           </h3>

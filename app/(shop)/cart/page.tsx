@@ -42,7 +42,7 @@ export default function CartPage() {
         <p className="text-sm text-brand-gray-500 font-sans mb-8 max-w-xs">
           Looks like you haven&apos;t added anything yet. Explore our collections.
         </p>
-        <Link href="/shop">
+        <Link prefetch={false} href="/shop">
           <Button size="lg">Explore Collection</Button>
         </Link>
       </div>
@@ -91,7 +91,7 @@ export default function CartPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between gap-4">
-                  <Link href={`/shop/${item.product_slug}`}>
+                  <Link prefetch={false} href={`/shop/${item.product_slug}`}>
                     <h3 className="font-sans font-medium text-brand-black hover:text-brand-gray-600 transition-colors leading-snug">
                       {item.product_name}
                     </h3>
@@ -184,14 +184,14 @@ export default function CartPage() {
               </div>
             </div>
 
-            <Link href="/checkout" className="block mt-6">
+            <Link prefetch={false} href="/checkout" className="block mt-6">
               <Button fullWidth size="lg" className="flex items-center justify-center gap-2">
                 Proceed to Checkout
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
 
-            <Link
+            <Link prefetch={false}
               href="/shop"
               className="block mt-3 text-center text-2xs uppercase tracking-widest font-sans text-brand-gray-500 hover:text-brand-black transition-colors"
             >

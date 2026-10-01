@@ -13,7 +13,7 @@ export default function CategoryStrip() {
     <section className="border-y border-black/10">
       <div className="grid grid-cols-2 lg:grid-cols-4">
         {CATEGORIES.map((cat, i) => (
-          <Link
+          <Link prefetch={false}
             key={cat.label}
             href={cat.href}
             className={`group relative flex flex-col justify-end p-8 lg:p-10 hover:bg-black transition-colors duration-300 min-h-[140px] ${i > 0 ? "border-l border-black/10" : ""}`}

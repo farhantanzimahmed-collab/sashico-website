@@ -77,7 +77,7 @@ export default function PromoPopup() {
         </button>
 
         {/* Promo image — click goes to shop */}
-        <Link href="/shop" onClick={close}>
+        <Link prefetch={false} href="/shop" onClick={close}>
           <Image
             src="/promo-70-off.png"
             alt="Sashico — Up to 70% off all items"

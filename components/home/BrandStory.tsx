@@ -62,7 +62,7 @@ export default function BrandStory({ settings }: BrandStoryProps) {
             ))}
           </div>
 
-          <Link
+          <Link prefetch={false}
             href="/about"
             className="inline-flex items-center gap-3 label-xs text-white/55 hover:text-white transition-colors group"
           >

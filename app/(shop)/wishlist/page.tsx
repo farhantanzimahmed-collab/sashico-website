@@ -62,7 +62,7 @@ export default function WishlistPage() {
         <p className="text-sm text-brand-gray-500 font-sans mb-8 max-w-xs leading-relaxed">
           Save pieces you love and come back to them whenever you&apos;re ready.
         </p>
-        <Link href="/shop">
+        <Link prefetch={false} href="/shop">
           <Button size="lg">Explore Collection</Button>
         </Link>
       </div>
@@ -101,7 +101,7 @@ export default function WishlistPage() {
         </div>
 
         <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/shop">
+          <Link prefetch={false} href="/shop">
             <Button variant="outline" size="lg" className="flex items-center gap-2">
               <ShoppingBag className="h-4 w-4" />
               Continue Shopping

@@ -213,7 +213,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             )}
           </p>
           {!isFreeSize && (
-          <Link
+          <Link prefetch={false}
             href="/size-guide"
             className="flex items-center gap-1 label-xs text-brand-gray-400 hover:text-black transition-colors"
           >

@@ -13,14 +13,14 @@ export default function ShopBySize() {
               SHOP BY SIZE
             </h2>
           </div>
-          <Link href="/shop" className="label-xs text-brand-gray-500 hover:text-black transition-colors">
+          <Link prefetch={false} href="/shop" className="label-xs text-brand-gray-500 hover:text-black transition-colors">
             View All →
           </Link>
         </div>
 
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
           {SIZES.map((size) => (
-            <Link
+            <Link prefetch={false}
               key={size}
               href={`/shop?size=${size}`}
               className="group flex flex-col items-center justify-center aspect-square border border-brand-gray-200 rounded-lg hover:border-black hover:bg-black transition-all duration-200"

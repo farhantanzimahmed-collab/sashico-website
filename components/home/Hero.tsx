@@ -143,11 +143,11 @@ export default function Hero({ settings, featuredImages = [] }: HeroProps) {
           </h1>
 
           <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
-            <Link href="/shop" className="btn-primary">
+            <Link prefetch={false} href="/shop" className="btn-primary">
               {settings.hero_cta_text || "Shop Collection"}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-            <Link
+            <Link prefetch={false}
               href="/about"
               className="label-xs text-white/55 hover:text-white transition-colors inline-flex items-center gap-2"
             >

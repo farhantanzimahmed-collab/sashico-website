@@ -95,7 +95,7 @@ export default function MobileBottomNav() {
           return onClick ? (
             <button key={label} onClick={onClick} className={cls}>{inner}</button>
           ) : (
-            <Link key={href + label} href={href} className={cls}>{inner}</Link>
+            <Link prefetch={false} key={href + label} href={href} className={cls}>{inner}</Link>
           );
         })}
       </div>

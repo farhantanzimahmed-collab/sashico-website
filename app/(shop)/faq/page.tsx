@@ -100,7 +100,7 @@ export default function FAQPage() {
         <div className="bg-brand-gray-50 p-6 sm:p-8 text-center border border-brand-gray-100">
           <h3 className="font-sans text-base font-semibold text-brand-black mb-2">Still have questions?</h3>
           <p className="text-sm text-brand-gray-600 font-sans mb-5">We're here to help. Reach out and we'll get back to you within a few hours.</p>
-          <Link href="/contact" className="btn-primary">Contact Us</Link>
+          <Link prefetch={false} href="/contact" className="btn-primary">Contact Us</Link>
         </div>
       </div>
     </div>

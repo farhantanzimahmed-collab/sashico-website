@@ -43,7 +43,7 @@ export default function ProductSection({
               )}
             </div>
           </div>
-          <Link
+          <Link prefetch={false}
             href={viewAllHref}
             className="hidden sm:flex items-center gap-2 label-xs text-brand-gray-500 hover:text-black transition-colors group"
           >
@@ -61,7 +61,7 @@ export default function ProductSection({
 
         {/* Mobile view all */}
         <div className={`mt-10 text-center ${bottomButtonOnDesktop ? "" : "sm:hidden"}`}>
-          <Link href={viewAllHref} className="btn-outline inline-flex">
+          <Link prefetch={false} href={viewAllHref} className="btn-outline inline-flex">
             {viewAllLabel}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>

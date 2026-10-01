@@ -51,7 +51,7 @@ export default function Footer({ settings }: FooterProps) {
 
           {/* Brand col */}
           <div className="lg:col-span-2">
-            <Link href="/" className="inline-block mb-6">
+            <Link prefetch={false} href="/" className="inline-block mb-6">
               <Image
                 src="/sashico-logo-white.png"
                 alt="Sashico"
@@ -91,7 +91,7 @@ export default function Footer({ settings }: FooterProps) {
             <ul className="space-y-3">
               {SHOP_LINKS.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-sm text-white/55 hover:text-white transition-colors">
+                  <Link prefetch={false} href={item.href} className="text-sm text-white/55 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -105,7 +105,7 @@ export default function Footer({ settings }: FooterProps) {
             <ul className="space-y-3">
               {INFO_LINKS.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-sm text-white/55 hover:text-white transition-colors">
+                  <Link prefetch={false} href={item.href} className="text-sm text-white/55 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -119,7 +119,7 @@ export default function Footer({ settings }: FooterProps) {
             <ul className="space-y-3">
               {POLICY_LINKS.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-sm text-white/55 hover:text-white transition-colors">
+                  <Link prefetch={false} href={item.href} className="text-sm text-white/55 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>

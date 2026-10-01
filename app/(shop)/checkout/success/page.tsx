@@ -128,10 +128,10 @@ function SuccessContent() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link href="/shop" className="flex-1">
+          <Link prefetch={false} href="/shop" className="flex-1">
             <Button fullWidth size="lg">Continue Shopping</Button>
           </Link>
-          <Link href="/" className="flex-1">
+          <Link prefetch={false} href="/" className="flex-1">
             <Button fullWidth variant="outline" size="lg">Back to Home</Button>
           </Link>
         </div>

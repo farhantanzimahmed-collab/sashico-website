@@ -49,7 +49,7 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
           <ul className="space-y-0">
             {links.map((link, i) => (
               <li key={link.href}>
-                <Link
+                <Link prefetch={false}
                   href={link.href}
                   onClick={onClose}
                   className="flex items-center justify-between py-3.5 border-b border-black/8 group"

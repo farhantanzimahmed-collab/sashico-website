@@ -82,7 +82,7 @@ export default function CartDrawer() {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-3">
-                      <Link
+                      <Link prefetch={false}
                         href={`/shop/${item.product_slug}`}
                         onClick={closeCart}
                         className="text-sm text-black hover:text-brand-gray-500 transition-colors line-clamp-2 leading-snug"
@@ -141,10 +141,10 @@ export default function CartDrawer() {
               <span className="text-base font-semibold text-black">{formatPrice(total)}</span>
             </div>
             <p className="text-xs text-brand-gray-500">Delivery charge calculated at checkout</p>
-            <Link href="/checkout" onClick={closeCart} className="btn-primary w-full justify-center">
+            <Link prefetch={false} href="/checkout" onClick={closeCart} className="btn-primary w-full justify-center">
               Checkout
             </Link>
-            <Link href="/cart" onClick={closeCart} className="btn-outline w-full justify-center">
+            <Link prefetch={false} href="/cart" onClick={closeCart} className="btn-outline w-full justify-center">
               View Cart
             </Link>
           </div>

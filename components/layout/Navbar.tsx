@@ -124,7 +124,7 @@ export default function Navbar({ settings }: NavbarProps) {
 
               <nav className="hidden lg:flex items-center gap-8 xl:gap-10">
                 {NAV_LEFT.map((link) => (
-                  <Link key={link.href} href={link.href} className={navLinkClass(link.href, link.sale)}>
+                  <Link prefetch={false} key={link.href} href={link.href} className={navLinkClass(link.href, link.sale)}>
                     {link.label}
                   </Link>
                 ))}
@@ -133,7 +133,7 @@ export default function Navbar({ settings }: NavbarProps) {
 
             {/* Center — logo */}
             <div className="flex justify-center">
-              <Link href="/" className="flex items-center justify-center">
+              <Link prefetch={false} href="/" className="flex items-center justify-center">
                 <Image
                   src={transparent ? "/sashico-logo-white.png" : "/sashico-logo.png"}
                   alt="Sashico"
@@ -149,7 +149,7 @@ export default function Navbar({ settings }: NavbarProps) {
             <div className="flex items-center justify-end gap-6 xl:gap-8">
               <nav className="hidden lg:flex items-center gap-8 xl:gap-10">
                 {NAV_RIGHT.map((link) => (
-                  <Link key={link.href} href={link.href} className={navLinkClass(link.href)}>
+                  <Link prefetch={false} key={link.href} href={link.href} className={navLinkClass(link.href)}>
                     {link.label}
                   </Link>
                 ))}
@@ -159,7 +159,7 @@ export default function Navbar({ settings }: NavbarProps) {
                 <button onClick={() => setSearchOpen(true)} aria-label="Search" className={iconClass}>
                   <Search className="h-[18px] w-[18px]" />
                 </button>
-                <Link href="/wishlist" aria-label="Wishlist" className={cn("relative hidden sm:block", iconClass)}>
+                <Link prefetch={false} href="/wishlist" aria-label="Wishlist" className={cn("relative hidden sm:block", iconClass)}>
                   <Heart className="h-[18px] w-[18px]" />
                   {wishlistCount > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-black text-white text-[8px] flex items-center justify-center">

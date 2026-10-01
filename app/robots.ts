@@ -5,6 +5,10 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
+      // Meta's AI/web-indexing crawler (not ads) hit the site in 100+ request bursts
+      // and exhausted the hosting plan's 20 concurrent-request limit. Ads crawlers
+      // (facebookexternalhit, meta-externalads) stay allowed — ads need them.
+      { userAgent: "meta-externalagent", disallow: "/" },
       {
         userAgent: "*",
         allow: ["/", "/api/meta/feed"],
