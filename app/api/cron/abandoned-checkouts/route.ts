@@ -36,7 +36,8 @@ export async function GET(req: NextRequest) {
   for (const c of carts) {
     const placed = (orders || []).find((o) => norm(o.customer_phone) === c.customer_phone && o.created_at >= c.created_at);
     if (placed) {
-      await db.from("abandoned_checkouts").update({ status: "recovered", recovered_order_id: placed.id }).eq("id", c.id);
+      // Ordered (e.g. from another device) before we ever alerted — not abandoned at all
+      await db.from("abandoned_checkouts").delete().eq("id", c.id);
       continue;
     }
     if (config?.isEnabled) {

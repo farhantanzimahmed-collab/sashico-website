@@ -145,7 +145,7 @@ async function sendWeeklySummary(
   now: Date
 ) {
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - 7);
+  weekStart.setDate(now.getDate() - 6); // today + previous 6 days = exactly 7 days
   weekStart.setHours(0, 0, 0, 0);
 
   const { data: orders } = await supabase

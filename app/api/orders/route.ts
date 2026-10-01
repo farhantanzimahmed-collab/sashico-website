@@ -113,12 +113,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // This checkout was being tracked as possibly abandoned → mark it recovered
+    // Checkout draft → order. If we never alerted about it, it was a normal checkout:
+    // remove the draft. Only carts we alerted/followed up on count as "recovered".
     if (checkout_session) {
-      supabase.from("abandoned_checkouts")
-        .update({ status: "recovered", recovered_order_id: order.id, updated_at: new Date().toISOString() })
-        .eq("session_id", String(checkout_session))
-        .then(() => {});
+      (async () => {
+        const { data: draft } = await supabase.from("abandoned_checkouts")
+          .select("id, notified_at, status").eq("session_id", String(checkout_session)).maybeSingle();
+        if (!draft) return;
+        if (!draft.notified_at && draft.status === "open") {
+          await supabase.from("abandoned_checkouts").delete().eq("id", draft.id);
+        } else {
+          await supabase.from("abandoned_checkouts")
+            .update({ status: "recovered", recovered_order_id: order.id, updated_at: new Date().toISOString() })
+            .eq("id", draft.id);
+        }
+      })().catch(() => {});
     }
 
     // Send confirmation email (best-effort, non-blocking)
