@@ -1,5 +1,6 @@
 "use client";
 
+import CarryBagRow from "@/components/cart/CarryBagRow";
 import { whatsappLink, messengerLink } from "@/lib/contact";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -333,6 +334,8 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
+
+              <div className="mb-5"><CarryBagRow subtotal={total} compact /></div>
 
               <div className="space-y-3 text-sm font-sans border-t border-brand-gray-100 pt-4">
                 <div className="flex justify-between text-brand-gray-600">

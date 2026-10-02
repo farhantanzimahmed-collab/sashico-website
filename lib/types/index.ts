@@ -29,7 +29,14 @@ export interface ProductColor {
 
 export interface ProductSize {
   size: string;
+  /** AVAILABLE to customers (= master − reserved), maintained by the database */
   stock: number;
+  /** Units owned and not yet delivered — edited in Admin */
+  master?: number;
+  /** Held by active orders */
+  reserved?: number;
+  /** Delivered since tracking began (2026-10-03) */
+  sold?: number;
 }
 
 export interface Category {

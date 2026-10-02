@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { carryBagGift, isGift, qualifiesForCarryBag, CARRY_BAG_PRODUCT_ID } from "@/lib/carryBag";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { sendOrderConfirmationEmail } from "@/lib/email/orderConfirmation";
@@ -69,6 +70,12 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
+    // FREE Carry Bag — decided here (never trusted from the browser)
+    const productItems = (items as { is_gift?: boolean; total_price: number }[]).filter((i) => !isGift(i));
+    const productSubtotal = productItems.reduce((s2, i) => s2 + (Number(i.total_price) || 0), 0);
+    const withGift = qualifiesForCarryBag(productSubtotal);
+    let orderItems: unknown[] = withGift ? [...productItems, carryBagGift()] : productItems;
+
     // Create order
     const cleanAttribution = sanitizeAttribution(attribution);
     const insertOrder = (withAttribution: boolean) => supabase
@@ -80,7 +87,7 @@ export async function POST(req: NextRequest) {
         customer_email,
         customer_phone,
         shipping_address,
-        items,
+        items: orderItems,
         subtotal,
         shipping_cost,
         discount_amount: discount_amount || 0,
@@ -96,6 +103,23 @@ export async function POST(req: NextRequest) {
     let { data: order, error } = await insertOrder(true);
     // attribution column not added yet (migration pending) → save the order without it
     if (error && /attribution/.test(error.message)) ({ data: order, error } = await insertOrder(false));
+    // Carry bags ran out → still accept the order, just without the gift
+    if (error && withGift && error.message.startsWith("OUT_OF_STOCK|") && error.message.includes("Carry Bag")
+        && !productItems.some((i) => (i as { product_id?: string }).product_id === CARRY_BAG_PRODUCT_ID)) {
+      orderItems = productItems;
+      ({ data: order, error } = await insertOrder(true));
+    }
+    // Database refused: someone else just bought the last unit(s)
+    if (error && error.message.startsWith("OUT_OF_STOCK|")) {
+      const [, name, size, left] = error.message.split("|");
+      return NextResponse.json(
+        { error: Number(left) > 0
+            ? `Sorry — only ${left} left of ${name} (${size}). Please reduce the quantity.`
+            : `Sorry — ${name} (${size}) just sold out. Please remove it from your cart.`,
+          code: "OUT_OF_STOCK" },
+        { status: 409 }
+      );
+    }
     if (error) throw error;
 
     // Update customer stats (best-effort)
@@ -136,7 +160,7 @@ export async function POST(req: NextRequest) {
     // Meta CAPI Purchase — sent the moment the order exists, so it's counted even if
     // the customer never reaches the thank-you page. Same event_id as the browser
     // Pixel Purchase on the success page → Meta dedupes the pair.
-    const orderItems = order.items as { product_id: string; quantity: number; unit_price: number }[];
+    const paidItems = (order.items as { product_id: string; quantity: number; unit_price: number; is_gift?: boolean }[]).filter((i) => !isGift(i));
     sendMetaEvent({
       eventName: "Purchase",
       eventId: `purchase_${order.order_number}`,
@@ -156,9 +180,9 @@ export async function POST(req: NextRequest) {
         value: total_amount,
         order_id: order.order_number,
         content_type: "product",
-        content_ids: [...new Set(orderItems.map((i) => i.product_id))],
-        contents: orderItems.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price })),
-        num_items: orderItems.reduce((s, i) => s + i.quantity, 0),
+        content_ids: [...new Set(paidItems.map((i) => i.product_id))],
+        contents: paidItems.map((i) => ({ id: i.product_id, quantity: i.quantity, item_price: i.unit_price })),
+        num_items: paidItems.reduce((s, i) => s + i.quantity, 0),
       },
     }).catch((e) => console.error("[capi:purchase]", e));
 

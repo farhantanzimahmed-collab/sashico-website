@@ -43,7 +43,11 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
   const supabase = createClient();
 
   const [images, setImages] = useState<string[]>(product?.images || []);
-  const [sizes, setSizes] = useState<{ size: string; stock: number }[]>(product?.sizes || []);
+  // Inventory per size: master is what you edit; reserved/sold/available come from orders
+  type SizeRow = { size: string; stock: number; master?: number; reserved?: number; sold?: number };
+  const [sizes, setSizes] = useState<SizeRow[]>(
+    ((product?.sizes || []) as SizeRow[]).map((s) => ({ ...s, master: s.master ?? s.stock + (s.reserved ?? 0) }))
+  );
   const [colors, setColors] = useState<ProductColor[]>(product?.colors || []);
   const [stitchCount, setStitchCount] = useState<string>(product?.stitch_count?.toString() || "");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -162,13 +166,13 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
     setSizes((prev) => {
       const exists = prev.find((s) => s.size === size);
       if (exists) return prev.filter((s) => s.size !== size);
-      return [...prev, { size, stock: 10 }];
+      return [...prev, { size, stock: 10, master: 10, reserved: 0, sold: 0 }];
     });
   }
 
-  function updateSizeStock(size: string, stock: number) {
+  function updateSizeStock(size: string, master: number) {
     setSizes((prev) =>
-      prev.map((s) => (s.size === size ? { ...s, stock } : s))
+      prev.map((s) => (s.size === size ? { ...s, master } : s))
     );
   }
 
@@ -206,7 +210,7 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
       const payload: any = {
         ...data,
         images,
-        sizes,
+        sizes: sizes.map((s) => ({ size: s.size, master: s.master ?? s.stock })),
         ...(hasNewProductCols ? { colors, stitch_count: stitchCount ? parseInt(stitchCount) : null } : {}),
         discount_price: data.discount_price || null,
         updated_at: new Date().toISOString(),
@@ -350,21 +354,36 @@ export default function ProductForm({ product, mode }: ProductFormProps) {
               </div>
               {sizes.length > 0 && (
                 <div className="space-y-2">
-                  {sizes.map((s) => (
-                    <div key={s.size} className="flex items-center gap-3">
-                      <span className="text-xs font-sans font-medium text-brand-gray-700 w-8">
-                        {s.size}
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={s.stock}
-                        onChange={(e) => updateSizeStock(s.size, parseInt(e.target.value) || 0)}
-                        className="w-24 border border-brand-gray-200 px-3 py-1.5 text-xs font-sans focus:border-brand-black focus:outline-none"
-                      />
-                      <span className="text-xs text-brand-gray-400 font-sans">units</span>
-                    </div>
-                  ))}
+                  <div className="grid grid-cols-[5rem_6rem_repeat(3,5rem)] gap-3 text-2xs uppercase tracking-wider text-brand-gray-500 font-sans">
+                    <span>Size</span><span>Master</span><span>Reserved</span><span>Available</span><span>Sold</span>
+                  </div>
+                  {sizes.map((s) => {
+                    const master = s.master ?? s.stock;
+                    const reserved = s.reserved ?? 0;
+                    const available = master - reserved;
+                    return (
+                      <div key={s.size} className="grid grid-cols-[5rem_6rem_repeat(3,5rem)] gap-3 items-center text-xs font-sans">
+                        <span className="font-medium text-brand-gray-700">{s.size}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={master}
+                          onChange={(e) => updateSizeStock(s.size, parseInt(e.target.value) || 0)}
+                          className="w-24 border border-brand-gray-200 px-3 py-1.5 focus:border-brand-black focus:outline-none"
+                          aria-label={`Master stock ${s.size}`}
+                        />
+                        <span className="text-brand-gray-600">{reserved}</span>
+                        <span className={available < 0 ? "text-red-700 font-semibold" : available === 0 ? "text-orange-600" : "text-green-700"}>
+                          {available < 0 ? `${available} oversold` : available}
+                        </span>
+                        <span className="text-brand-gray-600">{s.sold ?? 0}</span>
+                      </div>
+                    );
+                  })}
+                  <p className="text-2xs text-brand-gray-500 font-sans pt-1">
+                    Master = units you have (excluding delivered). Edit it when new stock arrives or after a count.
+                    Reserved = held by active orders. Available = Master − Reserved (what customers can buy).
+                  </p>
                 </div>
               )}
             </div>

@@ -161,12 +161,9 @@ export async function runGoogleSync(
         .maybeSingle();
 
       if (existing) {
-        // Inventory only — never touch what the admin panel manages
-        const update: Record<string, unknown> = {
-          sizes: product.sizes,
-          stock_quantity: product.total_stock,
-          updated_at: new Date().toISOString(),
-        };
+        // Stock is managed in Admin (master inventory + automatic order reservations),
+        // so existing products are left untouched — only missing photos get filled.
+        const update: Record<string, unknown> = {};
 
         // Only fill photos if the product has none at all on the site
         const driveFiles = imageMap.get(code) ?? [];
@@ -179,11 +176,13 @@ export async function runGoogleSync(
           if (urls.length) { update.images = urls; log(`  📸 Added ${urls.length} photo(s) (product had none)`); }
         }
 
-        const { error } = await supabase.from("products").update(update).eq("slug", slug);
-        if (error) throw new Error(error.message);
+        if (Object.keys(update).length) {
+          const { error } = await supabase.from("products").update(update).eq("slug", slug);
+          if (error) throw new Error(error.message);
+          result.updated++;
+        }
         knownCodes.add(code);
-        result.updated++;
-        log(`  ✅ Stock updated (photos/details left as set in admin)`);
+        log(`  ✓ Exists — left as set in admin`);
         continue;
       }
 

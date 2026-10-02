@@ -389,6 +389,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       </div>,
       document.body)}
 
+      {/* Free carry bag offer */}
+      <div className="flex items-center gap-3 rounded-lg bg-brand-cream px-4 py-3">
+        <span aria-hidden className="text-lg">🎁</span>
+        <p className="text-sm text-black">
+          ৳600+ Order করলে <strong>FREE Carry Bag</strong>
+        </p>
+      </div>
+
       {/* Trust badges */}
       <div className="grid grid-cols-2 gap-3">
         <div className="flex items-center gap-3 border border-black/8 rounded-lg px-4 py-3">

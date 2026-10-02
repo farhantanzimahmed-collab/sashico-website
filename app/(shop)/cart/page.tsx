@@ -1,5 +1,6 @@
 "use client";
 
+import CarryBagRow from "@/components/cart/CarryBagRow";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -139,6 +140,8 @@ export default function CartPage() {
               </div>
             </div>
           ))}
+
+          <CarryBagRow subtotal={total} />
 
           <button
             onClick={clearCart}

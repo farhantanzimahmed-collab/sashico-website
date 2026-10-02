@@ -21,7 +21,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
   if (!order) notFound();
 
   // One card per distinct product in the order
-  const items = (order.items as { product_id: string; product_name: string; product_image: string; size: string }[]) || [];
+  const items = ((order.items as { product_id: string; product_name: string; product_image: string; size: string; is_gift?: boolean }[]) || []).filter((i) => !i.is_gift);
   const products = [...new Map(items.map((i) => [i.product_id, i])).values()];
 
   const { data: existing } = await db.from("reviews").select("product_id").eq("order_id", order.id);

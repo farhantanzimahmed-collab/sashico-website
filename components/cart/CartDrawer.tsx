@@ -1,5 +1,6 @@
 "use client";
 
+import CarryBagRow from "@/components/cart/CarryBagRow";
 import FreeShippingProgress from "./FreeShippingProgress";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -129,6 +130,9 @@ export default function CartDrawer() {
                 </li>
               ))}
             </ul>
+          )}
+          {items.length > 0 && (
+            <div className="px-8 pb-6"><CarryBagRow subtotal={total} /></div>
           )}
         </div>
 
