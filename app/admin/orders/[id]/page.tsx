@@ -72,13 +72,21 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             <span className={`px-3 py-1.5 text-2xs font-sans uppercase tracking-wider ${orderStatus?.color}`}>
               {orderStatus?.label}
             </span>
-            <Link
-              href={`/admin/orders/${orderId}/invoice`}
+            <a
+              href={`/api/admin/orders/${orderId}/invoice`}
+              download
+              className="flex items-center gap-1.5 bg-brand-black text-white border border-brand-black px-3 py-1.5 text-2xs font-sans uppercase tracking-wider hover:bg-brand-gray-800 transition-colors"
+            >
+              Download Invoice (PDF)
+            </a>
+            <a
+              href={`/api/admin/orders/${orderId}/invoice?inline=1`}
               target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1.5 border border-brand-gray-200 px-3 py-1.5 text-2xs font-sans uppercase tracking-wider text-brand-gray-700 hover:border-brand-black transition-colors"
             >
-              Invoice / Print
-            </Link>
+              View / Print
+            </a>
           </div>
         </div>
       </div>
