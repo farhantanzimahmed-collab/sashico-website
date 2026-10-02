@@ -389,12 +389,21 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       </div>,
       document.body)}
 
-      {/* Free carry bag offer */}
-      <div className="flex items-center gap-3 rounded-lg bg-brand-cream px-4 py-3">
-        <span aria-hidden className="text-lg">🎁</span>
-        <p className="text-sm text-black">
-          ৳600+ Order করলে <strong>FREE Carry Bag</strong>
-        </p>
+      {/* Free carry bag offer — oxblood shimmer banner (same accent as the SALE button) */}
+      <div className="sale-shimmer !block w-full rounded-lg shadow-sm">
+       <div className="relative flex items-center gap-3 px-4 py-3.5">
+        <span aria-hidden className="text-2xl leading-none animate-bounce [animation-duration:2s]">🎁</span>
+        <div className="min-w-0">
+          <p className="text-sm sm:text-base font-bold tracking-wide text-white">
+            Shop ৳600+ &amp; Get a FREE Carry Bag!
+          </p>
+          <p className="text-xs text-white/80 mt-0.5">
+            {price >= 600
+              ? "This item alone unlocks it — added automatically at checkout"
+              : `Add ${formatPrice(600 - price)} more to unlock — added automatically`}
+          </p>
+        </div>
+       </div>
       </div>
 
       {/* Trust badges */}
