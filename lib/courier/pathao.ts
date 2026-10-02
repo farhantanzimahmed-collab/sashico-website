@@ -60,6 +60,7 @@ async function requestToken(config: PathaoConfig, grant: "password" | "refresh_t
 
   const res = await fetch(`${BASE_URL[config.environment]}/aladdin/api/v1/issue-token`, {
     method: "POST",
+    signal: AbortSignal.timeout(15000), // never hold a server slot waiting on Pathao
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(body),
   });
@@ -96,6 +97,7 @@ export async function pathaoApi<T = any>(path: string, init: { method?: string; 
   const call = async (token: string) =>
     fetch(`${BASE_URL[config.environment]}${path}`, {
       method: init.method ?? "GET",
+      signal: AbortSignal.timeout(15000),
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Accept: "application/json" },
       body: init.body ? JSON.stringify(init.body) : undefined,
     });

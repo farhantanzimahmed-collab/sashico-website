@@ -70,7 +70,7 @@ def main() -> None:
     if status != 200 or secs > 15:
         alerts.append(f"🔴 <b>sashico.net is not loading</b> — homepage returned <code>{status}</code> after {secs}s.")
 
-    shoppers, bots, paths = 0, 0, {}
+    shoppers, bots, pathao, paths = 0, 0, 0, {}
     try:
         with open(LOG, errors="replace") as f:
             for line in f:
@@ -80,6 +80,11 @@ def main() -> None:
                 ts = datetime.strptime(m.group(2), "%d/%b/%Y:%H:%M:%S %z")
                 if ts <= since:
                     continue
+                if m.group(4).startswith("/api/admin/courier"):
+                    pathao += 1  # our Pathao integration failed, not the hosting limit
+                    continue
+                if m.group(4).startswith("/api/admin/") or m.group(4).startswith("/admin"):
+                    continue  # admin-only pages — not a shopper
                 if BOT_RE.search(m.group(6)):
                     bots += 1
                 else:
@@ -93,7 +98,10 @@ def main() -> None:
         top = "\n".join(f"• {k} ×{v}" for k, v in sorted(paths.items(), key=lambda x: -x[1])[:5])
         alerts.append(
             f"⚠️ <b>{shoppers} shopper request(s) refused</b> since {since.astimezone(timezone(timedelta(hours=6))):%H:%M}\n{top}\n"
-            "508 = hosting plan's 20-request limit reached. If this repeats, ask ADN Diginet to raise Entry Processes.")
+            "508 = hosting plan's request limit reached; 504 = a page took too long. If this repeats, ask ADN Diginet to raise Entry Processes.")
+    if pathao:
+        alerts.append(f"📦 Pathao couldn't be reached {pathao} time(s) from the admin panel. "
+                      "Shoppers aren't affected — only booking parcels. If it keeps failing, book in the Pathao merchant panel.")
     if bots >= 50:
         alerts.append(f"ℹ️ {bots} bot/crawler requests were refused (server at its limit). Shoppers weren't affected this time.")
 
