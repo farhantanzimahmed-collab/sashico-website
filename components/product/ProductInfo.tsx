@@ -1,5 +1,7 @@
 "use client";
 
+import { CARRY_BAG_IMAGE } from "@/lib/carryBag";
+import Image from "next/image";
 import ChatButtons from "@/components/ui/ChatButtons";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -392,7 +394,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* Free carry bag offer — oxblood shimmer banner (same accent as the SALE button) */}
       <div className="sale-shimmer !block w-full rounded-lg shadow-sm">
        <div className="relative flex items-center gap-3 px-4 py-3.5">
-        <span aria-hidden className="text-2xl leading-none animate-bounce [animation-duration:2s]">🎁</span>
+        {/* The actual gift: SS-DB-005 carry bag photo, with a bouncing gift tag */}
+        <div className="relative h-16 w-16 shrink-0 rounded-md bg-white overflow-hidden ring-2 ring-white/60">
+          <Image src={CARRY_BAG_IMAGE} alt="Free Sashico carry bag" fill sizes="64px" className="object-contain p-1" />
+        </div>
+        <span aria-hidden className="absolute left-14 top-2 text-lg leading-none animate-bounce [animation-duration:2s]">🎁</span>
         <div className="min-w-0">
           <p className="text-sm sm:text-base font-bold tracking-wide text-white">
             Shop ৳600+ &amp; Get a FREE Carry Bag!
